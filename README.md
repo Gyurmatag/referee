@@ -13,7 +13,7 @@ This account is public on purpose so a stranger can open admin and participant s
 - Password: `devin-admin`
 - Roles: Gyurmatag, organizer and participant
 
-Then: Events → Budapest Build → Settings (admin) or Submit work (participant). Wall and `/presentation` also work without login.
+Then: Events → Budapest Build → Settings (admin) or Submit work (participant). Wall, `/devin`, and `/presentation` also work without login.
 
 ## What you can do
 
@@ -21,7 +21,7 @@ Then: Events → Budapest Build → Settings (admin) or Submit work (participant
 - Leave the live URL empty and Devin deploys the app
 - Watch each team on the wall as clone, build, review, and score finish
 - Take over the isolated browser when a team used Google or GitHub login
-- Change the rubric on the admin page
+- Change the rubric on the admin page and reveal scores when the room is ready
 
 ## Repo
 
@@ -84,5 +84,6 @@ Parallel sessions from this event:
 - https://app.devin.ai/sessions/272d72a99ce14558ae7bef41a895c7cc
 - https://app.devin.ai/sessions/6ac38e61548e41bfa56203676d180b57
 - https://app.devin.ai/sessions/3fb1447054a74fe3b4962af173e1d7ec
+- https://app.devin.ai/sessions/356f322d949e4b28a9ce4f90645beb5a
 
 Devin writes `/out/report.json` after each phase. That is the review loop. `.github/workflows/ci.yml` runs tests. If a PR check fails, `.github/workflows/devin-ci-fix.yml` starts `!referee-ci`.

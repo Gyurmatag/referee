@@ -123,6 +123,21 @@ export default function EventAdminPage() {
     setSaved("Saved");
   }
 
+  async function setReveal(next: boolean) {
+    setSaved("");
+    const res = await fetch(`/api/org/reveal?event=${encodeURIComponent(id)}`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ reveal_scores: next }),
+    });
+    if (!res.ok) {
+      setError("Reveal failed");
+      return;
+    }
+    setEvent((current) => (current ? { ...current, reveal_scores: next } : current));
+    setSaved(next ? "Scores are public" : "Scores are hidden");
+  }
+
   async function importLumaGuests() {
     setLumaPending(true);
     const res = await fetch("/api/org/guests", {
@@ -184,6 +199,25 @@ export default function EventAdminPage() {
           </label>
           <Button variant="outline" type="button" onClick={() => void saveEvent()}>
             Save event
+          </Button>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Score reveal</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <p className="text-sm text-muted-foreground">
+            {event.reveal_scores
+              ? "Scores are public on each team's scorecard."
+              : "Scores stay hidden on scorecards until you reveal them."}
+          </p>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => void setReveal(!event.reveal_scores)}
+          >
+            {event.reveal_scores ? "Hide scores" : "Reveal scores"}
           </Button>
         </CardContent>
       </Card>

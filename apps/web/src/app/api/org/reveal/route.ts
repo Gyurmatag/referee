@@ -4,7 +4,8 @@ import { requireOrganizer } from "@/lib/org";
 export async function PUT(request: Request) {
   const gate = await requireOrganizer();
   if (gate instanceof Response) return gate;
-  const res = await coreFetch("/org/reveal", {
+  const event = new URL(request.url).searchParams.get("event") ?? "default";
+  const res = await coreFetch(`/org/reveal?event=${encodeURIComponent(event)}`, {
     method: "PUT",
     headers: { "x-user-id": gate.login },
     body: await request.text(),
