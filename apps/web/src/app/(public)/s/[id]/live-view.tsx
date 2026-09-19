@@ -75,6 +75,16 @@ export function LiveView({
       ) : (
         <p className="text-sm text-muted-foreground">No live URL - Devin will deploy it</p>
       )}
+      {sub.claims.length > 0 ? (
+        <div className="box p-5">
+          <p className="text-sm text-muted-foreground">Sponsor claims</p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {sub.claims.map((row) => (
+              <li key={row.claim}>{row.claim}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       <TakeoverBanner id={sub.id} visible={sub.status === "takeover"} />
       {sub.deployment?.url ? (
         <p className="text-sm">

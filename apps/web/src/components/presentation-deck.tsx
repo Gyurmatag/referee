@@ -265,10 +265,17 @@ const slides: Slide[] = [
   },
 ];
 
+function slideFromSearch() {
+  if (typeof window === "undefined") return 0;
+  const raw = Number(new URLSearchParams(window.location.search).get("s") || "1");
+  if (!Number.isFinite(raw)) return 0;
+  return Math.max(0, Math.min(slides.length - 1, raw - 1));
+}
+
 export function PresentationDeck() {
   const rootRef = useRef<HTMLDivElement>(null);
-  const [index, setIndex] = useState(0);
-  const indexRef = useRef(0);
+  const [index, setIndex] = useState(slideFromSearch);
+  const indexRef = useRef(index);
 
   const go = useCallback((next: number) => {
     const clamped = Math.max(0, Math.min(slides.length - 1, next));
