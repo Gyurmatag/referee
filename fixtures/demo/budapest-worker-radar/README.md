@@ -1,7 +1,11 @@
 # Chain Bridge Radar
 
-Team Chain Bridge entry for Budapest Build.
+Next.js + shadcn night-service board for Team Chain Bridge.
 
-Deployed on Cloudflare Workers. Uses the OpenAI SDK.
+Uses the OpenAI SDK.
 
-Live URL is the `workers.dev` hostname after `wrangler deploy`.
+```bash
+npm install
+npm run build
+npm start
+```

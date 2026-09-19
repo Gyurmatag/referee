@@ -1,11 +1,11 @@
 # Danube Voice Desk
 
-Team Danube entry for Budapest Build at Impact Hub Budapest.
+Next.js + shadcn voice desk for Team Danube.
 
-Not deployed. Start with `npm start` (or `node server.mjs`) on port 3000.
+Uses the OpenAI SDK, Groq inference, and ElevenLabs voice.
 
-Uses:
-
-- OpenAI SDK for brief drafting
-- Groq inference as fallback
-- ElevenLabs voice when `ELEVENLABS_API_KEY` is set
+```bash
+npm install
+npm run build
+npm start
+```
