@@ -10,7 +10,7 @@ export function HomeEvents() {
   const teamName = (id?: string) => data?.teams?.find((team) => team.id === id)?.team_name ?? "Team";
 
   return (
-    <section className="mx-auto max-w-5xl px-6 pb-28">
+    <section className="shell pb-28">
       <h2 className="text-[48px] font-medium leading-none tracking-[-0.04em] md:text-[64px]">Events</h2>
       <p className="mt-4 max-w-2xl text-muted-foreground">
         Teams submit and judging finishes here - open a team for the full log.

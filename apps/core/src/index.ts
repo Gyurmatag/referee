@@ -46,6 +46,12 @@ import { WallHub } from "./do/wall.js";
 import { assembleWall, publishWall } from "./wall-publish.js";
 import { publicEventFrom } from "./wall.js";
 import { fetchOutpostStatus } from "./outpost.js";
+import { openSandbox } from "./sandbox/client.js";
+import {
+  enqueueTakeoverCommand,
+  readTakeoverFrame,
+  readTakeoverStatus,
+} from "./review/takeover.js";
 
 export { SubmissionDO, JudgeScheduler, Sandbox, WallHub };
 
@@ -208,6 +214,96 @@ app.get("/submissions/:id", async (c) => {
   const submission = await getSubmission(c.env.DB, c.req.param("id"));
   if (!submission) return c.json({ error: "not found" }, 404);
   return c.json(submission);
+});
+
+app.get("/submissions/:id/takeover", async (c) => {
+  if (!requireInternal(c)) return c.json({ error: "unauthorized" }, 401);
+  const id = c.req.param("id");
+  const submission = await getSubmission(c.env.DB, id);
+  if (!submission) return c.json({ error: "not found" }, 404);
+  let status = null;
+  if (c.env.Sandbox) {
+    try {
+      status = await readTakeoverStatus(openSandbox(c.env, id));
+    } catch {
+      status = null;
+    }
+  }
+  return c.json({
+    submission_id: id,
+    team_name: submission.team_name,
+    status: submission.status,
+    takeover: status ?? {
+      state: submission.status === "takeover" ? "waiting" : "idle",
+      reason:
+        submission.status === "takeover"
+          ? "Team can take over the isolated browser and sign in"
+          : "",
+      url: submission.deployment?.url || submission.live_url || "",
+      signed_in: false,
+      oauth: 0,
+      password: 0,
+      takeover: submission.status === "takeover",
+    },
+  });
+});
+
+app.get("/submissions/:id/takeover/frame", async (c) => {
+  if (!requireInternal(c)) return c.json({ error: "unauthorized" }, 401);
+  const id = c.req.param("id");
+  const submission = await getSubmission(c.env.DB, id);
+  if (!submission) return c.json({ error: "not found" }, 404);
+  if (!c.env.Sandbox) return c.json({ error: "sandbox unavailable" }, 503);
+  try {
+    const frame = await readTakeoverFrame(openSandbox(c.env, id));
+    if (!frame || frame.byteLength < 32) return c.json({ error: "no frame" }, 404);
+    return new Response(frame, {
+      headers: {
+        "content-type": "image/png",
+        "cache-control": "no-store",
+      },
+    });
+  } catch {
+    return c.json({ error: "no frame" }, 404);
+  }
+});
+
+app.post("/submissions/:id/takeover/input", async (c) => {
+  if (!requireInternal(c)) return c.json({ error: "unauthorized" }, 401);
+  const id = c.req.param("id");
+  const submission = await getSubmission(c.env.DB, id);
+  if (!submission) return c.json({ error: "not found" }, 404);
+  if (!c.env.Sandbox) return c.json({ error: "sandbox unavailable" }, 503);
+  const body = await c.req.json().catch(() => null);
+  try {
+    const command = await enqueueTakeoverCommand(openSandbox(c.env, id), body);
+    if (command.type === "done") {
+      await submissionStub(c.env, id).fetch(
+        new Request("https://submission/takeover-continue", { method: "POST" }),
+      );
+    }
+    return c.json({ ok: true, command: command.type });
+  } catch {
+    return c.json({ error: "invalid takeover command" }, 400);
+  }
+});
+
+app.post("/submissions/:id/takeover/done", async (c) => {
+  if (!requireInternal(c)) return c.json({ error: "unauthorized" }, 401);
+  const id = c.req.param("id");
+  const submission = await getSubmission(c.env.DB, id);
+  if (!submission) return c.json({ error: "not found" }, 404);
+  if (c.env.Sandbox) {
+    try {
+      await enqueueTakeoverCommand(openSandbox(c.env, id), { type: "done" });
+    } catch {
+      // DO poll will time out if the file write fails
+    }
+  }
+  await submissionStub(c.env, id).fetch(
+    new Request("https://submission/takeover-continue", { method: "POST" }),
+  );
+  return c.json({ ok: true });
 });
 
 app.post("/submissions/:id/rejudge", async (c) => {

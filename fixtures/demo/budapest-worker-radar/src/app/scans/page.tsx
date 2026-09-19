@@ -1,3 +1,4 @@
+import { AuthGate } from "@/components/auth-gate";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -5,6 +6,7 @@ import { scanLog } from "@/lib/routes";
 
 export default function ScansPage() {
   return (
+    <AuthGate>
     <div className="space-y-4">
       <div>
         <h1 className="text-xl font-medium tracking-tight">Scans</h1>
@@ -39,5 +41,6 @@ export default function ScansPage() {
         </CardContent>
       </Card>
     </div>
+    </AuthGate>
   );
 }

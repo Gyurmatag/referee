@@ -67,7 +67,9 @@ export default function EventWallPage() {
 
   const teams = data.teams ?? [];
   const items = data.submissions ?? [];
-  const judging = data.judging ?? items.filter((s) => s.status === "judging" || s.status === "deploying");
+  const judging =
+    data.judging ??
+    items.filter((s) => s.status === "judging" || s.status === "deploying" || s.status === "takeover");
   const shown = teams.length > 0 ? teams : items;
   const place = eventPlace(data.event?.city, data.event?.venue);
 
@@ -94,7 +96,13 @@ export default function EventWallPage() {
                   <TeamCard
                     href={`/wall/${s.id}`}
                     label={s.team_name}
-                    title={s.status === "done" || s.status === "failed" ? s.status : (s.judge_runs?.[0]?.phase ?? s.status)}
+                    title={
+                      s.status === "takeover"
+                        ? "waiting for login"
+                        : s.status === "done" || s.status === "failed"
+                          ? s.status
+                          : (s.judge_runs?.[0]?.phase ?? s.status)
+                    }
                     meta={s.repo_url}
                   />
                 </li>

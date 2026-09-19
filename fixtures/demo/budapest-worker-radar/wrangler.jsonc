@@ -1,0 +1,9 @@
+{
+  "name": "budapest-worker-radar",
+  "compatibility_date": "2026-09-19",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "single-page-application"
+  }
+}

@@ -143,7 +143,7 @@ const slides: Slide[] = [
           <Box label="Submit" hint="Repo. Claims. Team." />
           <Box label="Sandbox" hint="Clone. Build. Test." />
           <Box label="Deploy" hint="Devin ships it." />
-          <Box label="Review" hint="Playwright. Shots." />
+          <Box label="Review" hint="Playwright. Team login." />
           <Box label="Wall" hint="Live to the room." />
         </div>
       </div>
@@ -162,8 +162,25 @@ const slides: Slide[] = [
         </Display>
         <Line>
           Each team gets an isolated Cloudflare sandbox. It clones the repo, installs, builds, and
-          runs Playwright. If they leave a demo email and password, we sign in. We cannot finish
-          Google or GitHub OAuth.
+          runs Playwright. A demo email and password signs in. Google or GitHub waits for the team.
+        </Line>
+      </div>
+    ),
+  },
+  {
+    id: "takeover",
+    theme: "wash",
+    render: () => (
+      <div className="flex w-full max-w-5xl flex-col items-start gap-8">
+        <Kicker>Login</Kicker>
+        <Display>
+          The team
+          <br />
+          takes over.
+        </Display>
+        <Line>
+          If the app hits Google or GitHub, we freeze the isolated browser. The team signs in
+          themselves. Judging continues in that same session.
         </Line>
       </div>
     ),
@@ -194,7 +211,7 @@ const slides: Slide[] = [
           <Box label="Web" hint="Next.js on Cloudflare. GitHub login. Events, submit, admin." />
           <Box label="Core worker" hint="Durable Objects drive one pipeline per team." />
           <Box label="D1 + R2" hint="Events, submissions, evidence, screenshots." />
-          <Box label="Sandbox + Devin" hint="Isolated runs. Cognition Devin API. Live wall hub." />
+          <Box label="Sandbox + Devin" hint="Isolated runs. Team takeover. Cognition Devin API." />
         </div>
       </div>
     ),

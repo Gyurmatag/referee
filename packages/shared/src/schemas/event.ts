@@ -40,6 +40,7 @@ export const WallTeamSchema = z.object({
   phase: z.string().default(""),
   screenshots: z.array(z.string()).default([]),
   created_at: z.string().default(""),
+  needs_login: z.boolean().default(false),
 });
 
 export const WallPayloadSchema = z.object({

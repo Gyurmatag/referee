@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { clearRadarSession, useRadarSession } from "@/lib/auth-session";
 
 const links = [
   { href: "/", label: "Network" },
@@ -13,6 +14,7 @@ const links = [
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const session = useRadarSession();
 
   return (
     <header className="border-b bg-background">
@@ -32,6 +34,15 @@ export function SiteHeader() {
               <Link href={link.href}>{link.label}</Link>
             </Button>
           ))}
+          {session ? (
+            <Button type="button" variant="ghost" size="sm" onClick={() => clearRadarSession()}>
+              {session.name}
+            </Button>
+          ) : (
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/oauth/github/">Sign in with GitHub</Link>
+            </Button>
+          )}
         </nav>
       </div>
       <Separator />

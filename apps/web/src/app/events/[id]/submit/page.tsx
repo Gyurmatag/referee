@@ -143,7 +143,8 @@ export default function SubmitPage() {
               Demo password
               <input name="demo_password" type="password" placeholder="Optional team account" className="field" autoComplete="new-password" />
               <span className="mt-1 block text-xs text-muted-foreground">
-                Use a team email and password if the app has a login wall. We cannot finish Google or GitHub OAuth.
+                Optional team email and password. If the app uses Google or GitHub, your team can take
+                over the isolated browser and sign in there.
               </span>
             </label>
             <label className="text-sm">

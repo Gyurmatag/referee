@@ -68,6 +68,24 @@ export {
 } from "./schemas/submission";
 export { parseDemoLogin, mergeDemoLogin, redactDemoLogin, type DemoLogin } from "./demo-login";
 export {
+  TAKEOVER_DONE_PATH,
+  TAKEOVER_FRAME_PATH,
+  TAKEOVER_INBOX,
+  TAKEOVER_LIMIT_MS,
+  TAKEOVER_PORT,
+  TAKEOVER_STATUS_PATH,
+  TAKEOVER_VIEW,
+  clampPoint,
+  loginWallFromCounts,
+  mapClickToViewport,
+  parseTakeoverCommand,
+  parseTakeoverStatus,
+  takeoverReason,
+  type TakeoverCommand,
+  type TakeoverState,
+  type TakeoverStatus,
+} from "./takeover";
+export {
   aggregate,
   confidenceFrom,
   compareExternalVerdict,

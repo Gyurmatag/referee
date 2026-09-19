@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
+import { HomeEvents } from "@/components/home-events";
 import { Button } from "@/components/ui/button";
 
 export default function LandingPage() {
@@ -56,6 +57,7 @@ export default function LandingPage() {
             <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
               <li>Build, tracks, and review on each repo</li>
               <li>Sandbox clones the repo and runs Playwright e2e</li>
+              <li>Teams can take over the isolated browser to finish login</li>
               <li>Screenshots land on the event wall</li>
             </ul>
           </article>
@@ -69,6 +71,7 @@ export default function LandingPage() {
           </article>
         </div>
       </section>
+      <HomeEvents />
     </main>
   );
 }

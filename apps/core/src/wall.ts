@@ -51,9 +51,10 @@ export function wallTeamsFrom(submissions: Submission[]) {
     repo_url: s.repo_url,
     live_url: s.live_url || null,
     deploy_url: s.deployment?.url || s.live_url || null,
-    phase: s.judge_runs[0]?.phase || s.status,
+    phase: s.status === "takeover" ? "takeover" : s.judge_runs[0]?.phase || s.status,
     screenshots: s.review?.screenshots ?? [],
     created_at: s.created_at,
+    needs_login: s.status === "takeover",
   }));
 }
 
@@ -66,7 +67,13 @@ export function wallPayloadFrom(input: {
   events: { id?: number; submission_id: string; kind: string; message: string; at: string }[];
 }): WallPayload {
   const judging = input.submissions
-    .filter((s) => s.status === "judging" || s.status === "deploying" || s.status === "queued")
+    .filter(
+      (s) =>
+        s.status === "judging" ||
+        s.status === "deploying" ||
+        s.status === "queued" ||
+        s.status === "takeover",
+    )
     .map((row) => ({ ...row, run_hints: redactDemoLogin(row.run_hints) }));
   return {
     event: input.event,

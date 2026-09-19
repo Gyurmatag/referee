@@ -66,11 +66,40 @@ describe("review helpers", () => {
     expect(review.pr_url).toBe("");
   });
 
-  it("launches Chromium without a sandbox in the capture script", () => {
+  it("records a team takeover in the review summary", () => {
+    const review = reviewFromE2e({
+      teamName: "Team Danube",
+      repoUrl: "https://github.com/Gyurmatag/budapest-voice-desk",
+      target: "https://hackathon-team-danube.cfi-ops.workers.dev",
+      fileCount: 12,
+      pass: 2,
+      fail: 0,
+      screenshots: ["submissions/sub_1/review/evidence/e2e-app.png"],
+      provenance: {
+        repo_created_at: "",
+        is_fork: false,
+        parent_repo: null,
+        commits: [],
+        in_window_ratio: 1,
+        bot_commit_ratio: 0,
+        coauthor_devin_ratio: 0,
+        devin_prs: 0,
+        notes: "",
+      },
+      signedIn: true,
+      takeover: true,
+    });
+    expect(review.summary).toContain("team takeover");
+    expect(review.summary).toContain("signed-in path exercised");
+  });
+
+  it("launches Chromium without a sandbox and waits for a team takeover", () => {
     expect(E2E_CAPTURE_JS).toContain("--no-sandbox");
     expect(E2E_CAPTURE_JS).toContain("/tmp/referee-target.txt");
     expect(E2E_CAPTURE_JS).toContain("/tmp/referee-demo.json");
-    expect(E2E_CAPTURE_JS).not.toContain("Continue with Google");
+    expect(E2E_CAPTURE_JS).toContain("/tmp/takeover");
+    expect(E2E_CAPTURE_JS).toContain("never click oauth");
+    expect(E2E_CAPTURE_JS).toContain("sign in with (google|github|apple)");
   });
 });
 

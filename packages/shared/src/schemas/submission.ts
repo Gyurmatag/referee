@@ -6,6 +6,7 @@ export const SubmissionStatusSchema = z.enum([
   "queued",
   "judging",
   "deploying",
+  "takeover",
   "done",
   "failed",
   "appealed",

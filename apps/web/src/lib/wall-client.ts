@@ -17,6 +17,7 @@ export type WallTeam = {
   phase?: string;
   screenshots?: string[];
   created_at?: string;
+  needs_login?: boolean;
 };
 
 export type WallLog = {
@@ -38,7 +39,7 @@ export type WallPayload = {
   events?: WallLog[];
 };
 
-export const MILESTONE_KINDS = new Set(["submitted", "done", "failed"]);
+export const MILESTONE_KINDS = new Set(["submitted", "done", "failed", "takeover"]);
 
 export function prettyKind(kind: string) {
   const labels: Record<string, string> = {
@@ -53,6 +54,7 @@ export function prettyKind(kind: string) {
     teardown: "Teardown",
     quota: "Quota",
     error: "Error",
+    takeover: "Team login",
   };
   return labels[kind] ?? kind.replace(/_/g, " ");
 }
@@ -64,6 +66,7 @@ export function prettyTime(at: string) {
 export function eventTone(kind: string, message = ""): "running" | "pass" | "fail" {
   if (kind === "failed" || kind === "error" || message.toLowerCase().includes("fail")) return "fail";
   if (kind === "done" || kind === "submitted") return "pass";
+  if (kind === "takeover") return "running";
   return "running";
 }
 

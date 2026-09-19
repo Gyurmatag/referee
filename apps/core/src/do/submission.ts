@@ -1,5 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
-import { aggregate, parseJudgeReport, type Phase } from "@referee/shared";
+import { TAKEOVER_LIMIT_MS, aggregate, parseJudgeReport, type Phase, type Review } from "@referee/shared";
 import {
   getEvent,
   getSubmission,
@@ -14,7 +14,11 @@ import {
   type CoreEnv,
 } from "../db/queries.js";
 import { fetchProvenance } from "../provenance/github.js";
-import { runSandboxReview } from "../review/sandbox-review.js";
+import {
+  finishSandboxReview,
+  pollSandboxReview,
+  startSandboxReview,
+} from "../review/sandbox-review.js";
 import {
   createRunner,
   isTerminalPhase,
@@ -34,6 +38,8 @@ type PipelineStep =
   | "wait_slot_j2"
   | "judge2"
   | "review"
+  | "review_wait"
+  | "takeover"
   | "aggregate"
   | "done"
   | "failed";
@@ -49,6 +55,7 @@ type DoState = {
   queuePosition: number | null;
   hints: string;
   currentJudge: "build_e2e" | "tracks";
+  takeoverStartedAt?: string | null;
 };
 
 export class SubmissionDO extends DurableObject<CoreEnv> {
@@ -86,13 +93,15 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
     if (url.pathname.endsWith("/review-now") && request.method === "POST") {
       const state = await this.load();
       const id = state?.submissionId || this.ctx.id.name || "unknown";
-      this.ctx.waitUntil(
-        this.writeReview(id).then(async () => {
-          const latest = await this.load();
-          if (latest?.step === "done") await this.runAggregate(latest);
-        }),
-      );
+      this.ctx.waitUntil(this.runReviewNow(id));
       return Response.json({ ok: true, id, started: true });
+    }
+    if (url.pathname.endsWith("/takeover-continue") && request.method === "POST") {
+      const state = await this.load();
+      if (state?.step === "takeover") {
+        await this.ctx.storage.setAlarm(Date.now() + 50);
+      }
+      return Response.json({ ok: true });
     }
     if (url.pathname.endsWith("/appeal") && request.method === "POST") {
       const body = await request.json<{ hints?: string }>().catch(() => ({ hints: "" }));
@@ -117,6 +126,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
       queuePosition: null,
       hints,
       currentJudge: "build_e2e",
+      takeoverStartedAt: null,
     });
     await updateSubmission(this.env.DB, submissionId, {
       status: "queued",
@@ -160,6 +170,14 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
         await this.runReview(state);
         return;
       }
+      if (state.step === "review_wait") {
+        await this.pollTakeover(state, false);
+        return;
+      }
+      if (state.step === "takeover") {
+        await this.pollTakeover(state);
+        return;
+      }
       if (state.step === "aggregate") {
         await this.runAggregate(state);
       }
@@ -177,6 +195,8 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
         judge1: "deploy",
         deploy: "review",
         review: "wait_slot_j2",
+        review_wait: "wait_slot_j2",
+        takeover: "wait_slot_j2",
         wait_slot_j2: "aggregate",
         judge2: "aggregate",
         aggregate: "done",
@@ -454,33 +474,120 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
     await this.runReview(state);
   }
 
-  private async writeReview(submissionId: string): Promise<void> {
-    const sub = await getSubmission(this.env.DB, submissionId);
-    if (!sub) return;
-    try {
-      const review = await runSandboxReview(this.env, sub);
-      await upsertReview(this.env.DB, sub.id, review);
-      await this.emit(sub.id, "review", review.summary);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "review failed";
-      await upsertReview(this.env.DB, sub.id, {
-        fork_repo: "",
-        pr_url: "",
-        review_url: "",
-        summary: message,
-        summary_score: 0.4,
-        screenshots: [],
-      });
-      await this.emit(sub.id, "review", message);
-    }
+  private async persistReview(submissionId: string, review: Review): Promise<void> {
+    await upsertReview(this.env.DB, submissionId, review);
+    await this.emit(submissionId, "review", review.summary);
+  }
+
+  private async failedReview(submissionId: string, message: string): Promise<void> {
+    await upsertReview(this.env.DB, submissionId, {
+      fork_repo: "",
+      pr_url: "",
+      review_url: "",
+      summary: message,
+      summary_score: 0.4,
+      screenshots: [],
+    });
+    await this.emit(submissionId, "review", message);
+  }
+
+  private async continueAfterReview(state: DoState): Promise<void> {
+    state.step = "wait_slot_j2";
+    state.currentJudge = "tracks";
+    state.takeoverStartedAt = null;
+    await this.save(state);
+    await this.trySlot(state, "tracks");
+  }
+
+  private async pauseForTakeover(state: DoState, reason: string): Promise<void> {
+    state.step = "takeover";
+    state.takeoverStartedAt = state.takeoverStartedAt || now();
+    await this.save(state);
+    await updateSubmission(this.env.DB, state.submissionId, {
+      status: "takeover",
+      updated_at: now(),
+    });
+    await this.emit(state.submissionId, "takeover", reason);
+    await this.ctx.storage.setAlarm(Date.now() + 2_000);
+  }
+
+  private async runReviewNow(submissionId: string): Promise<void> {
+    const state = (await this.load()) ?? {
+      submissionId,
+      step: "review" as const,
+      runId: null,
+      runnerMeta: null,
+      judgeRunId: null,
+      judgeStartedAt: null,
+      lastPhase: null,
+      queuePosition: null,
+      hints: "",
+      currentJudge: "tracks" as const,
+      takeoverStartedAt: null,
+    };
+    await this.runReview(state);
+    const latest = await this.load();
+    if (latest?.step === "done") await this.runAggregate(latest);
   }
 
   private async runReview(state: DoState): Promise<void> {
-    await this.writeReview(state.submissionId);
-    state.step = "wait_slot_j2";
-    state.currentJudge = "tracks";
-    await this.save(state);
-    await this.trySlot(state, "tracks");
+    const sub = await getSubmission(this.env.DB, state.submissionId);
+    if (!sub) {
+      await this.fail(state, "submission missing");
+      return;
+    }
+    try {
+      const outcome = await startSandboxReview(this.env, sub);
+      if (outcome.kind === "takeover") {
+        await this.pauseForTakeover(state, outcome.reason);
+        return;
+      }
+      if (outcome.kind === "running") {
+        state.step = "review_wait";
+        state.takeoverStartedAt = state.takeoverStartedAt || now();
+        await this.save(state);
+        await this.ctx.storage.setAlarm(Date.now() + 2_000);
+        return;
+      }
+      await this.persistReview(sub.id, outcome.review);
+    } catch (error) {
+      await this.failedReview(sub.id, error instanceof Error ? error.message : "review failed");
+    }
+    await this.continueAfterReview(state);
+  }
+
+  private async pollTakeover(state: DoState, allowTimeout = true): Promise<void> {
+    const sub = await getSubmission(this.env.DB, state.submissionId);
+    if (!sub) {
+      await this.fail(state, "submission missing");
+      return;
+    }
+    const started = Date.parse(state.takeoverStartedAt || now());
+    const limit = state.step === "takeover" ? TAKEOVER_LIMIT_MS : 180_000;
+    const timedOut = Number.isFinite(started) && Date.now() - started > limit;
+    try {
+      if (timedOut && (allowTimeout || state.step === "review_wait")) {
+        const review = await finishSandboxReview(this.env, sub);
+        await this.persistReview(sub.id, review);
+        await this.continueAfterReview(state);
+        return;
+      }
+      const outcome = await pollSandboxReview(this.env, sub);
+      if (outcome.kind === "done") {
+        await this.persistReview(sub.id, outcome.review);
+        await this.continueAfterReview(state);
+        return;
+      }
+      if (outcome.kind === "takeover") {
+        await this.pauseForTakeover(state, outcome.reason);
+        return;
+      }
+    } catch (error) {
+      await this.failedReview(sub.id, error instanceof Error ? error.message : "review failed");
+      await this.continueAfterReview(state);
+      return;
+    }
+    await this.ctx.storage.setAlarm(Date.now() + 2_000);
   }
 
   private async runAggregate(state: DoState): Promise<void> {

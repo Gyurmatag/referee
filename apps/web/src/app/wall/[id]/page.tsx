@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ShotGallery } from "@/components/shot-gallery";
+import { TakeoverBanner } from "@/components/takeover-banner";
 import { useWall } from "@/hooks/use-wall";
 import { eventTone, eventsForTeam, findTeam, prettyKind, prettyTime } from "@/lib/wall-client";
 
@@ -74,6 +75,11 @@ export default function TeamLogPage() {
             {status}
           </p>
         </div>
+
+        <TakeoverBanner
+          id={id}
+          visible={Boolean(status === "takeover" || (team && "needs_login" in team && team.needs_login))}
+        />
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2">
           <div className="box px-4 py-3">

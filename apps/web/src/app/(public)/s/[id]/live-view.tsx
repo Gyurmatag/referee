@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { SubmissionSchema, type Submission } from "@referee/shared";
 import { JudgeCard } from "@/components/judge-card";
 import { RepoStory } from "@/components/repo-story";
+import { TakeoverBanner } from "@/components/takeover-banner";
 import { SWR_REFRESH_MS } from "@/lib/swr";
 
 const fetcher = async (url: string): Promise<Submission> => {
@@ -74,6 +75,7 @@ export function LiveView({
       ) : (
         <p className="text-sm text-muted-foreground">No live URL - Devin will deploy it</p>
       )}
+      <TakeoverBanner id={sub.id} visible={sub.status === "takeover"} />
       {sub.deployment?.url ? (
         <p className="text-sm">
           Deploy:{" "}

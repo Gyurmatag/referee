@@ -65,6 +65,7 @@ describe("wall payload", () => {
     expect(teams[0]?.team_name).toBe("Team Danube");
     expect(teams[0]?.created_at).toBe("2026-09-19T10:00:00.000Z");
     expect(teams[0]?.screenshots).toEqual(["submissions/sub_1/review/evidence/e2e-home.png"]);
+    expect(teams[0]?.needs_login).toBe(false);
     const payload = wallPayloadFrom({
       event: publicEventFrom({
         id: "default",
