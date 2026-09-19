@@ -227,8 +227,11 @@ export async function startSandboxReview(env: CoreEnv, sub: Submission): Promise
     const reason = takeoverReason(0, 1);
     try {
       await startE2eProcess(sandbox, target);
-    } catch {
-      // the isolated browser is best-effort; the wall is enough to pause
+    } catch (error) {
+      await sandbox.writeFile(
+        "/tmp/e2e.out",
+        `startE2eProcess failed: ${error instanceof Error ? error.message : String(error)}\n`,
+      );
     }
     await markWaitingForLogin(sandbox, target, reason);
     return { kind: "takeover", reason };

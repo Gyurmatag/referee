@@ -5,6 +5,7 @@ import {
   reviewUrlFromPr,
 } from "../src/review/fork-pr.js";
 import { E2E_CAPTURE_JS, reviewFromE2e } from "../src/review/sandbox-review-helpers.js";
+import { TAKEOVER_SESSION_JS } from "../src/review/takeover-session.js";
 import { parseLumaHtml, parseGuestCsv } from "../src/luma/event.js";
 import { isQuotaSignature, retentionCutoff } from "../src/cron-helpers.js";
 
@@ -100,6 +101,13 @@ describe("review helpers", () => {
     expect(E2E_CAPTURE_JS).toContain("/tmp/takeover");
     expect(E2E_CAPTURE_JS).toContain("never click oauth");
     expect(E2E_CAPTURE_JS).toContain("sign in with (google|github|apple)");
+    expect(TAKEOVER_SESSION_JS).toContain("/tmp/takeover/frame.png");
+    expect(TAKEOVER_SESSION_JS).toContain("--no-sandbox");
+    expect(TAKEOVER_SESSION_JS).toContain("mouse.click");
+    expect(TAKEOVER_SESSION_JS).toContain("mouse.move");
+    expect(TAKEOVER_SESSION_JS).toContain("keyboard.type");
+    expect(TAKEOVER_SESSION_JS).toContain("keyboard.press");
+    expect(TAKEOVER_SESSION_JS).toContain("applyInbox");
   });
 });
 

@@ -49,7 +49,9 @@ import { fetchOutpostStatus } from "./outpost.js";
 import { openSandbox } from "./sandbox/client.js";
 import {
   enqueueTakeoverCommand,
+  ensureTakeoverFrame,
   readTakeoverFrame,
+  readTakeoverLog,
   readTakeoverStatus,
 } from "./review/takeover.js";
 
@@ -223,9 +225,12 @@ app.get("/submissions/:id/takeover", async (c) => {
   const submission = await getSubmission(c.env.DB, id);
   if (!submission) return c.json({ error: "not found" }, 404);
   let status = null;
+  let browser_log = "";
   if (c.env.Sandbox) {
     try {
-      status = await readTakeoverStatus(openSandbox(c.env, id));
+      const sandbox = openSandbox(c.env, id);
+      status = await readTakeoverStatus(sandbox);
+      browser_log = await readTakeoverLog(sandbox);
     } catch {
       status = null;
     }
@@ -234,6 +239,7 @@ app.get("/submissions/:id/takeover", async (c) => {
     submission_id: id,
     team_name: submission.team_name,
     status: submission.status,
+    browser_log,
     takeover: status ?? {
       state: submission.status === "takeover" ? "waiting" : "idle",
       reason:
@@ -256,8 +262,13 @@ app.get("/submissions/:id/takeover/frame", async (c) => {
   if (!submission) return c.json({ error: "not found" }, 404);
   if (!c.env.Sandbox) return c.json({ error: "sandbox unavailable" }, 503);
   try {
-    const frame = await readTakeoverFrame(openSandbox(c.env, id));
-    if (!frame || frame.byteLength < 32) return c.json({ error: "no frame" }, 404);
+    const sandbox = openSandbox(c.env, id);
+    const target = submission.deployment?.url || submission.live_url || "";
+    let frame = await readTakeoverFrame(sandbox);
+    if (!frame || frame.byteLength < 32) {
+      c.executionCtx.waitUntil(ensureTakeoverFrame(sandbox, target).then(() => undefined));
+      return c.json({ error: "starting browser" }, 404);
+    }
     return new Response(frame, {
       headers: {
         "content-type": "image/png",
