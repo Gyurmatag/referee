@@ -1,0 +1,99 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-pass: var(--pass);
+  --color-partial: var(--partial);
+  --color-fail: var(--fail);
+  --color-running: var(--running);
+  --color-brand: var(--brand);
+  --color-elevated: var(--elevated);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 10px;
+  --radius-2xl: 16px;
+  --radius-4xl: 9999px;
+}
+
+:root {
+  --background: #f7f6f5;
+  --foreground: #191919;
+  --elevated: #ffffff;
+  --card: #efefef;
+  --card-foreground: #191919;
+  --popover: #ffffff;
+  --popover-foreground: #191919;
+  --primary: #191919;
+  --primary-foreground: #ffffff;
+  --secondary: #efefef;
+  --secondary-foreground: #191919;
+  --muted: #f3f3f3;
+  --muted-foreground: rgb(25 25 25 / 0.56);
+  --accent: #efefef;
+  --accent-foreground: #191919;
+  --destructive: #f53b3a;
+  --border: rgb(0 0 0 / 0.1);
+  --input: rgb(0 0 0 / 0.1);
+  --ring: #191919;
+  --pass: #00a558;
+  --partial: #f58e3a;
+  --fail: #f53b3a;
+  --running: #317cff;
+  --brand: #317cff;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply min-h-full bg-background font-sans;
+  }
+  body {
+    @apply min-h-screen bg-background text-foreground antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.04em;
+  }
+}
+
+@layer components {
+  .field {
+    @apply mt-1 h-10 w-full rounded-[2px] border-0 bg-elevated px-3 text-sm outline-none ring-1 ring-black/10 focus:ring-2 focus:ring-foreground;
+  }
+  .field-area {
+    @apply mt-1 w-full rounded-[2px] border-0 bg-elevated px-3 py-2 text-sm outline-none ring-1 ring-black/10 focus:ring-2 focus:ring-foreground;
+  }
+  .box {
+    @apply rounded-[10px] border border-black/10 bg-elevated;
+  }
+  .tile {
+    @apply rounded-2xl border-0 bg-card;
+  }
+  .hero-frame {
+    @apply overflow-hidden rounded-[10px] bg-elevated drop-shadow-[0_0_8px_#ddd];
+  }
+}

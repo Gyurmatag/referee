@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "referee-web",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-19",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
+  },
+  // The D1 binding is added back in M4, once referee-db has a real id.
+  // A placeholder id makes getPlatformProxy fail at `next dev` startup.
+  "vars": {
+    "AUTH_TRUST_HOST": "true",
+    "AUTH_URL": "https://referee-web.cfi-ops.workers.dev",
+    "CORE_URL": "https://referee-core.cfi-ops.workers.dev",
+    "ORGANIZER_LOGINS": "Gyurmatag",
+    "NEXT_PUBLIC_CORE_URL": "https://referee-core.cfi-ops.workers.dev",
+    "NEXT_PUBLIC_CORE_WS_URL": "wss://referee-core.cfi-ops.workers.dev/wall/ws"
+  },
+  "services": [
+    {
+      "binding": "CORE",
+      "service": "referee-core"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

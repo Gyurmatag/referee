@@ -1,0 +1,9 @@
+{
+  "agent": { "model": "swe-2-medium" },
+  "theme_mode": "nocolor",
+  "show_hints": false,
+  "attribution": true,
+  "subagents_enabled": false,
+  "auto_update": false,
+  "notify": "never"
+}

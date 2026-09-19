@@ -1,0 +1,196 @@
+{
+  "id": "sub_done_1",
+  "user_id": "u1",
+  "team_name": "North Star",
+  "repo_url": "https://github.com/example/north-star",
+  "live_url": "https://north-star.example.workers.dev",
+  "claims": [
+    { "claim": "Home page lists three tracks" },
+    { "claim": "Submit form accepts a public GitHub URL" },
+    { "claim": "Scorecard shows claim results" }
+  ],
+  "run_hints": "pnpm install && pnpm dev",
+  "devin_links": ["https://app.devin.ai/sessions/example"],
+  "display_consent": true,
+  "head_sha": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
+  "status": "done",
+  "confidence": 0.72,
+  "score": null,
+  "created_at": "2026-09-19T08:00:00.000Z",
+  "updated_at": "2026-09-19T08:40:00.000Z",
+  "judge_runs": [
+    {
+      "id": "run_build_1",
+      "submission_id": "sub_done_1",
+      "judge": "build_e2e",
+      "runner": "cli-sandbox",
+      "phase": "done",
+      "log_tail": "install ok\nbuild ok\nclaim 1 pass\nclaim 2 pass\nclaim 3 pass",
+      "report": {
+        "judge": "build_e2e",
+        "phase": "done",
+        "build": { "status": "ok", "notes": "pnpm build" },
+        "recipe": {
+          "install": "pnpm install",
+          "build": "pnpm build",
+          "start": "pnpm start",
+          "port": 3000,
+          "env": {},
+          "needs_db": false,
+          "notes": ""
+        },
+        "deploy": {
+          "url": "https://north-star.example.workers.dev",
+          "method": "live_url",
+          "notes": ""
+        },
+        "claims": [
+          {
+            "claim": "Home page lists three tracks",
+            "test": "e2e/home.spec.ts",
+            "result": "pass",
+            "evidence": ["evidence/claim-1.webm"],
+            "notes": "Three track cards visible"
+          },
+          {
+            "claim": "Submit form accepts a public GitHub URL",
+            "test": "e2e/submit.spec.ts",
+            "result": "pass",
+            "evidence": ["evidence/claim-2.webm"],
+            "notes": "Valid URL accepted"
+          },
+          {
+            "claim": "Scorecard shows claim results",
+            "test": "e2e/scorecard.spec.ts",
+            "result": "partial",
+            "evidence": ["evidence/claim-3.webm"],
+            "notes": "Table renders; video dialog missing thumbnails"
+          }
+        ],
+        "tracks": [],
+        "security": { "secrets_found": 0, "notes": "No secrets matched" },
+        "integrity": {
+          "injection_found": 0,
+          "findings": [],
+          "notes": "No judge-directed text found"
+        },
+        "confidence": 0.9,
+        "summary": "App builds and two of three claims pass fully. Third claim is partial because evidence thumbnails are missing. No secrets found."
+      },
+      "transcript_key": "submissions/sub_done_1/build_e2e/transcript.json",
+      "started_at": "2026-09-19T08:01:00.000Z",
+      "finished_at": "2026-09-19T08:18:00.000Z",
+      "error": null
+    },
+    {
+      "id": "run_tracks_1",
+      "submission_id": "sub_done_1",
+      "judge": "tracks",
+      "runner": "cli-sandbox",
+      "phase": "done",
+      "log_tail": "devin_role 4/5\ncloudflare 5/5",
+      "report": {
+        "judge": "tracks",
+        "phase": "done",
+        "build": { "status": "skipped", "notes": "" },
+        "recipe": {
+          "install": "",
+          "build": "",
+          "start": "",
+          "port": 3000,
+          "env": {},
+          "needs_db": false,
+          "notes": ""
+        },
+        "deploy": { "url": "", "method": "none", "notes": "" },
+        "claims": [],
+        "tracks": [
+          {
+            "track": "devin_role",
+            "score": 4,
+            "max": 5,
+            "evidence": ["commit:a1b2c3d"],
+            "notes": "Co-Authored-By trailers on feature commits"
+          },
+          {
+            "track": "cloudflare",
+            "score": 5,
+            "max": 5,
+            "evidence": ["wrangler.jsonc"],
+            "notes": "Worker + D1"
+          }
+        ],
+        "security": { "secrets_found": 0, "notes": "" },
+        "confidence": 0.85,
+        "summary": "Devin authored load-bearing commits. Cloudflare deployment is first-class."
+      },
+      "transcript_key": "submissions/sub_done_1/tracks/transcript.json",
+      "started_at": "2026-09-19T08:18:00.000Z",
+      "finished_at": "2026-09-19T08:24:00.000Z",
+      "error": null
+    }
+  ],
+  "provenance": {
+    "repo_created_at": "2026-09-18T20:00:00.000Z",
+    "is_fork": false,
+    "parent_repo": null,
+    "commits": [
+      {
+        "sha": "1111111111111111111111111111111111111111",
+        "at": "2026-09-18T21:00:00.000Z",
+        "author": "alice",
+        "is_bot": false,
+        "coauthored_by_devin": false,
+        "additions": 40,
+        "deletions": 2
+      },
+      {
+        "sha": "2222222222222222222222222222222222222222",
+        "at": "2026-09-19T02:00:00.000Z",
+        "author": "devin-ai-integration[bot]",
+        "is_bot": true,
+        "coauthored_by_devin": true,
+        "additions": 120,
+        "deletions": 8
+      },
+      {
+        "sha": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
+        "at": "2026-09-19T07:30:00.000Z",
+        "author": "alice",
+        "is_bot": false,
+        "coauthored_by_devin": true,
+        "additions": 30,
+        "deletions": 4
+      }
+    ],
+    "in_window_ratio": 0.67,
+    "bot_commit_ratio": 0.33,
+    "coauthor_devin_ratio": 0.67,
+    "devin_prs": 1,
+    "notes": ""
+  },
+  "deployment": {
+    "method": "live_url",
+    "url": "https://north-star.example.workers.dev",
+    "sandbox_url": "https://example.trycloudflare.com",
+    "sandbox_id": "sub-sub_done_1",
+    "port": 3000,
+    "healthy": true,
+    "last_seen_at": "2026-09-19T08:20:00.000Z"
+  },
+  "review": {
+    "fork_repo": "https://github.com/referee-org/north-star",
+    "pr_url": "https://github.com/referee-org/north-star/pull/1",
+    "review_url": "https://devinreview.com/referee-org/north-star/pull/1",
+    "summary": "Clear structure, tests present.",
+    "summary_score": 0.8
+  },
+  "external_verdict": {
+    "source": "Event AI judge",
+    "score": 4.5,
+    "max": 5,
+    "summary": "Polished product, clear demo, sensible architecture.",
+    "url": "https://example.com/judging/north-star",
+    "recorded_at": "2026-09-19T08:45:00.000Z"
+  }
+}

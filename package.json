@@ -1,0 +1,15 @@
+{
+  "name": "referee",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.15.1",
+  "scripts": {
+    "test": "pnpm --filter @referee/shared test && pnpm --filter @referee/core test",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "dev:core": "pnpm --filter @referee/core dev",
+    "dev:web": "pnpm --filter @referee/web dev"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

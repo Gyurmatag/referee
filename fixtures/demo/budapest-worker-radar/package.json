@@ -1,0 +1,16 @@
+{
+  "name": "budapest-worker-radar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "openai": "^4.77.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.40.0"
+  }
+}

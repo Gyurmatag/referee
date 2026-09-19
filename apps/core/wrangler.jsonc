@@ -1,0 +1,67 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "referee-core",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "REFEREE_GITHUB_ORG": "",
+    "DEVIN_MODEL": "swe-2-medium",
+    "MAX_CONCURRENT_JUDGES": "6",
+    "JUDGE_TIME_LIMIT_MIN": "20",
+    "JUDGE_PARALLEL": "false",
+    "RETENTION_HOURS": "20",
+    "JUDGE_RUNNER_BUILD_E2E": "cli-sandbox",
+    "JUDGE_RUNNER_TRACKS": "cli-sandbox",
+    "CORE_PUBLIC_URL": "https://referee-core.cfi-ops.workers.dev",
+    "ORGANIZER_LOGINS": "Gyurmatag",
+    "DEVIN_OUTPOST_ID": "outpost_env-f6584ab25cad4024aaca256d05d169e7",
+    "DEVIN_ORG_ID": "org-0a801a4239fb48bcbbd0fa97a299c7a1"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "referee-db",
+      "database_id": "fe9ff554-40d6-4a89-b999-500bbf096251"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "EVIDENCE",
+      "bucket_name": "referee-evidence"
+    }
+  ],
+  "containers": [
+    {
+      "class_name": "Sandbox",
+      "image": "../../judge/Dockerfile",
+      "image_build_context": "../..",
+      "instance_type": "standard-3",
+      "max_instances": 8
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      { "name": "SUBMISSION", "class_name": "SubmissionDO" },
+      { "name": "SCHEDULER", "class_name": "JudgeScheduler" },
+      { "name": "Sandbox", "class_name": "Sandbox" },
+      { "name": "WALL", "class_name": "WallHub" }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["SubmissionDO", "JudgeScheduler", "Sandbox"]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["WallHub"]
+    }
+  ],
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  }
+}
