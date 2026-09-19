@@ -50,6 +50,7 @@ export default function LandingPage() {
               <li>GitHub repo and optional live URL</li>
               <li>Sponsor claims come from the event</li>
               <li>Empty live URL means Devin deploys it</li>
+              <li>Team secrets are KEY=value and stay off the wall</li>
             </ul>
           </article>
           <article className="tile p-8">

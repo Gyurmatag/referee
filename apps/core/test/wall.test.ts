@@ -140,8 +140,9 @@ describe("wall payload", () => {
       ],
       events: [],
     });
-    expect(payload.submissions[0]?.run_hints).toContain("OPENAI_API_KEY=***");
-    expect(payload.submissions[0]?.run_hints).not.toContain("sk-live");
-    expect(payload.submissions[0]?.run_hints).toContain("DEMO_USER=ada");
+    const hints = (payload.submissions[0] as { run_hints?: string }).run_hints ?? "";
+    expect(hints).toContain("OPENAI_API_KEY=***");
+    expect(hints).not.toContain("sk-live");
+    expect(hints).toContain("DEMO_USER=ada");
   });
 });

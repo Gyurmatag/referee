@@ -45,7 +45,7 @@ export default function SubmitPage() {
     const form = new FormData(e.currentTarget);
     const nextErrors: Record<string, string> = {};
     const parsed = CreateSubmissionSchema.safeParse({
-      team_name: form.get("team_name") || "Team",
+      team_name: String(form.get("team_name") || "").trim(),
       repo_url: form.get("repo_url"),
       live_url: form.get("live_url") || "",
       claims: selected.map((claim) => ({ claim })),
@@ -97,12 +97,14 @@ export default function SubmitPage() {
           <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4">
             <label className="text-sm">
               Team name
-              <input name="team_name" className="field" />
+              <input name="team_name" required className="field" />
+              {errors.team_name ? <p className="mt-1 text-fail">{errors.team_name}</p> : null}
             </label>
             <label className="text-sm">
               Repo URL
               <input
                 name="repo_url"
+                required
                 placeholder="https://github.com/org/repo"
                 className="field"
               />

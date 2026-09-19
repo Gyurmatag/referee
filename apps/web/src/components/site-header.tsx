@@ -29,33 +29,33 @@ export function SiteHeader() {
 
   return (
     <header className="shell flex items-center justify-between py-5">
-      <nav className="flex items-center gap-7 text-sm">
+      <nav className="flex flex-wrap items-center gap-4 text-sm sm:gap-7">
         <Link href="/" className="flex items-center gap-2 font-medium">
           <span className="grid size-10 place-items-center rounded-[6px] bg-foreground text-[16px] text-background">
             R
           </span>
         </Link>
-        <Link href="/events" className="hidden text-muted-foreground hover:text-foreground sm:inline">
+        <Link href="/events" className="text-muted-foreground hover:text-foreground">
           Events
         </Link>
         {eventId ? (
           <>
             <Link
               href={`/events/${eventId}/submit`}
-              className="hidden text-muted-foreground hover:text-foreground sm:inline"
+              className="text-muted-foreground hover:text-foreground"
             >
               Submit
             </Link>
             <Link
               href={`/events/${eventId}/wall`}
-              className="hidden text-muted-foreground hover:text-foreground sm:inline"
+              className="text-muted-foreground hover:text-foreground"
             >
               Wall
             </Link>
             {organizer ? (
               <Link
                 href={`/events/${eventId}/admin`}
-                className="hidden text-muted-foreground hover:text-foreground sm:inline"
+                className="text-muted-foreground hover:text-foreground"
               >
                 Admin
               </Link>

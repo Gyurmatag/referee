@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Referee",
-  description: "Hackathon operations",
+  description: "Live hackathon judge. Submit a repo, Devin deploys and scores it on a wall.",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },

@@ -22,7 +22,7 @@ export default function LoginPage() {
     });
     setPending(false);
     if (!res || res.error) {
-      setError("Login failed");
+      setError("Email or password is wrong");
       return;
     }
     window.location.assign(res.url || "/events");
@@ -39,13 +39,31 @@ export default function LoginPage() {
           <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4">
             <label className="text-sm">
               Email
-              <input name="email" type="email" autoComplete="username" className="field" />
+              <input
+                name="email"
+                type="email"
+                required
+                autoComplete="username"
+                className="field"
+                aria-invalid={error ? true : undefined}
+              />
             </label>
             <label className="text-sm">
               Password
-              <input name="password" type="password" autoComplete="current-password" className="field" />
+              <input
+                name="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                className="field"
+                aria-invalid={error ? true : undefined}
+              />
             </label>
-            {error ? <p className="text-sm text-fail">{error}</p> : null}
+            {error ? (
+              <p className="text-sm text-fail" role="alert">
+                {error}
+              </p>
+            ) : null}
             <Button type="submit" disabled={pending}>
               {pending ? "Signing in" : "Sign in"}
             </Button>

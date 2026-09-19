@@ -163,7 +163,7 @@ const slides: Slide[] = [
         <Kicker>How it works</Kicker>
         <Display>One pipeline.</Display>
         <div className="grid w-full gap-3 sm:grid-cols-5">
-          <Box label="Submit" hint="Repo. Claims. Secrets." />
+          <Box label="Submit" hint="Repo. Claims. Secrets. README." />
           <Box label="Sandbox" hint="Clone. Build. Test." />
           <Box label="Deploy" hint="Devin ships it with env." />
           <Box label="Review" hint="Playwright. Team login." />
