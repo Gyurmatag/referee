@@ -34,6 +34,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session({ session, token }) {
       session.user.login = typeof token.login === "string" ? token.login : "";
       session.user.githubId = typeof token.githubId === "number" ? token.githubId : 0;
+      session.user.image = typeof token.picture === "string" ? token.picture : session.user.image;
       session.user.roles = Array.isArray(token.roles)
         ? (token.roles as Array<"participant" | "organizer">)
         : rolesFor(session.user.login);

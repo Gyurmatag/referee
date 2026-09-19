@@ -22,7 +22,6 @@ export default function RegisterPage() {
       .catch(() => undefined);
   }, []);
 
-  const roles = session?.user?.roles ?? [];
   const sponsors = [...new Set(event.claims.map((claim) => claim.sponsor))];
   const featured = sponsors[0] ?? "OpenAI";
 
@@ -60,11 +59,6 @@ export default function RegisterPage() {
             </>
           )}
         </div>
-        {session?.user?.login ? (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Signed in as {session.user.login} - {roles.join(", ") || "participant"}
-          </p>
-        ) : null}
       </section>
 
       <section className="mx-auto max-w-[1120px] px-4 pb-20 md:px-6">
