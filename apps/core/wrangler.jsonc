@@ -12,7 +12,7 @@
     "DEVIN_MODEL": "swe-2-medium",
     "MAX_CONCURRENT_JUDGES": "6",
     "JUDGE_TIME_LIMIT_MIN": "20",
-    "JUDGE_PARALLEL": "false",
+    "JUDGE_PARALLEL": "true",
     "RETENTION_HOURS": "20",
     "JUDGE_RUNNER_BUILD_E2E": "cli-sandbox",
     "JUDGE_RUNNER_TRACKS": "cli-sandbox",

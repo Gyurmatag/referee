@@ -29,6 +29,7 @@ import {
 import type { JudgeInput, RunnerMeta } from "../runner/types.js";
 import { deployNotes, deploySubmission } from "../sandbox/deploy.js";
 import { publishWall } from "../wall-publish.js";
+import { judgesStartTogether } from "../judge-parallel.js";
 
 type PipelineStep =
   | "queued"
@@ -41,6 +42,7 @@ type PipelineStep =
   | "review"
   | "review_wait"
   | "takeover"
+  | "wait_tracks_parallel"
   | "aggregate"
   | "done"
   | "failed";
@@ -57,6 +59,13 @@ type DoState = {
   hints: string;
   currentJudge: "build_e2e" | "tracks";
   takeoverStartedAt?: string | null;
+  parallel?: boolean;
+  otherRunId?: string | null;
+  otherRunnerMeta?: RunnerMeta | null;
+  otherJudgeRunId?: string | null;
+  otherStartedAt?: string | null;
+  otherLastPhase?: string | null;
+  otherDone?: boolean;
 };
 
 export class SubmissionDO extends DurableObject<CoreEnv> {
@@ -149,10 +158,17 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
       }
       if (state.step === "wait_slot") {
         await this.trySlot(state, "build_e2e");
+        const latest = await this.load();
+        if (latest?.parallel && !latest.otherRunId && !latest.otherDone) {
+          await this.tryStartOther(latest);
+        }
         return;
       }
       if (state.step === "judge1") {
         await this.pollJudge(state, "build_e2e", "deploy");
+        if (state.parallel && !state.otherDone) {
+          await this.pollOtherJudge(state);
+        }
         return;
       }
       if (state.step === "deploy") {
@@ -165,6 +181,16 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
       }
       if (state.step === "judge2") {
         await this.pollJudge(state, "tracks", "aggregate");
+        return;
+      }
+      if (state.step === "wait_tracks_parallel") {
+        await this.pollOtherJudge(state);
+        const latest = await this.load();
+        if (latest?.otherDone) {
+          latest.step = "aggregate";
+          await this.save(latest);
+          await this.runAggregate(latest);
+        }
         return;
       }
       if (state.step === "review") {
@@ -200,6 +226,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
         takeover: "wait_slot_j2",
         wait_slot_j2: "aggregate",
         judge2: "aggregate",
+        wait_tracks_parallel: "aggregate",
         aggregate: "done",
         done: "done",
         failed: "failed",
@@ -256,8 +283,13 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
     }
     state.step = "wait_slot";
     state.currentJudge = "build_e2e";
+    state.parallel = judgesStartTogether(this.env.JUDGE_PARALLEL);
+    state.otherDone = false;
     await this.save(state);
     await this.trySlot(state, "build_e2e");
+    if (state.parallel) {
+      await this.tryStartOther(state);
+    }
   }
 
   private async trySlot(state: DoState, judge: "build_e2e" | "tracks"): Promise<void> {
@@ -366,6 +398,129 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
     state.queuePosition = 0;
     await this.save(state);
     await this.ctx.storage.setAlarm(Date.now() + 10_000);
+  }
+
+  private async tryStartOther(state: DoState): Promise<void> {
+    const id = this.env.SCHEDULER.idFromName("global");
+    const stub = this.env.SCHEDULER.get(id);
+    const result = await stub.fetch("https://scheduler/request", {
+      method: "POST",
+      body: JSON.stringify({
+        submissionId: state.submissionId,
+        judge: "tracks",
+      }),
+    });
+    const slot = (await result.json()) as { granted: boolean; position: number };
+    if (!slot.granted) {
+      state.queuePosition = slot.position;
+      await this.save(state);
+      return;
+    }
+    try {
+      const sub = await getSubmission(this.env.DB, state.submissionId);
+      const event = await getEvent(this.env.DB, sub?.event_id);
+      if (!sub) return;
+      const runner = this.getRunner("tracks");
+      const started = now();
+      const secrets = await getSubmissionSecrets(this.env.DB, sub.id);
+      const { runId, meta } = await runner.start(
+        this.judgeInput(sub, event, "tracks", state.hints, secrets),
+      );
+      const judgeRunId = crypto.randomUUID();
+      await insertJudgeRun(this.env.DB, {
+        id: judgeRunId,
+        submission_id: sub.id,
+        judge: "tracks",
+        runner: this.env.JUDGE_RUNNER_TRACKS || "cli-sandbox",
+        phase: "starting",
+        log_tail: "",
+        report: null,
+        transcript_key: null,
+        session_url: "",
+        started_at: started,
+        finished_at: null,
+        error: null,
+      });
+      await this.emit(sub.id, "tracks", "starting");
+      state.otherRunId = runId;
+      state.otherRunnerMeta = meta ?? null;
+      state.otherJudgeRunId = judgeRunId;
+      state.otherStartedAt = started;
+      state.otherLastPhase = "starting";
+      state.otherDone = false;
+      await this.save(state);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "tracks start failed";
+      await this.emit(state.submissionId, "tracks", message);
+      await this.releaseSlot(state.submissionId, "tracks");
+      state.otherDone = true;
+      await this.save(state);
+    }
+  }
+
+  private async pollOtherJudge(state: DoState): Promise<void> {
+    if (!state.otherRunId || !state.otherJudgeRunId || !state.otherStartedAt) {
+      if (!state.otherDone) {
+        await this.tryStartOther(state);
+      }
+      return;
+    }
+    const limit = Number(this.env.JUDGE_TIME_LIMIT_MIN || "20");
+    const runner = this.getRunner("tracks");
+    if (timedOut(state.otherStartedAt, Date.now(), limit)) {
+      await runner.cancel(state.otherRunId);
+      await updateJudgeRun(this.env.DB, state.otherJudgeRunId, {
+        phase: "failed",
+        error: "failed: timeout",
+        finished_at: now(),
+      });
+      await this.releaseSlot(state.submissionId, "tracks");
+      await this.emit(state.submissionId, "tracks", "failed: timeout");
+      state.otherDone = true;
+      state.otherRunId = null;
+      await this.save(state);
+      return;
+    }
+    if (state.otherRunnerMeta && runner.attach) {
+      runner.attach(state.otherRunId, state.otherRunnerMeta);
+    }
+    const poll = await runner.poll(state.otherRunId);
+    const phase = (poll.report?.phase ?? poll.phase) as Phase;
+    const parsed = poll.report ? parseJudgeReport(poll.report) : { report: null };
+    await updateJudgeRun(this.env.DB, state.otherJudgeRunId, {
+      phase,
+      log_tail: poll.logTail,
+      report: parsed.report,
+      session_url: poll.sessionUrl ?? "",
+    });
+    if (phase !== state.otherLastPhase) {
+      await this.emit(state.submissionId, "tracks", phase);
+      state.otherLastPhase = phase;
+      await this.save(state);
+    }
+    if (isTerminalPhase(phase) || poll.exited) {
+      if (state.otherRunnerMeta && runner.attach) {
+        runner.attach(state.otherRunId, state.otherRunnerMeta);
+      }
+      const collected = runner.collect
+        ? await runner.collect(state.otherRunId)
+        : { transcriptKey: null, evidenceKeys: [], report: parsed.report };
+      await updateJudgeRun(this.env.DB, state.otherJudgeRunId, {
+        phase: collected.report?.phase ?? phase,
+        report: collected.report ?? parsed.report,
+        transcript_key: collected.transcriptKey,
+        session_url: poll.sessionUrl ?? "",
+        finished_at: now(),
+        error: collected.report?.phase === "failed" ? collected.report.summary : null,
+      });
+      await this.releaseSlot(state.submissionId, "tracks");
+      await this.emit(state.submissionId, "tracks", "tracks done");
+      state.otherDone = true;
+      state.otherRunId = null;
+      state.otherRunnerMeta = null;
+      state.otherJudgeRunId = null;
+      await this.save(state);
+    }
   }
 
   private async pollJudge(
@@ -500,9 +655,27 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
   }
 
   private async continueAfterReview(state: DoState): Promise<void> {
+    state.takeoverStartedAt = null;
+    if (state.parallel && state.otherDone) {
+      state.step = "aggregate";
+      await this.save(state);
+      await this.runAggregate(state);
+      return;
+    }
+    if (state.parallel && (state.otherRunId || state.otherJudgeRunId)) {
+      state.step = "wait_tracks_parallel";
+      await this.save(state);
+      await this.pollOtherJudge(state);
+      const latest = await this.load();
+      if (latest?.otherDone) {
+        latest.step = "aggregate";
+        await this.save(latest);
+        await this.runAggregate(latest);
+      }
+      return;
+    }
     state.step = "wait_slot_j2";
     state.currentJudge = "tracks";
-    state.takeoverStartedAt = null;
     await this.save(state);
     await this.trySlot(state, "tracks");
   }
@@ -658,6 +831,9 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
     }
     if (state.currentJudge) {
       await this.releaseSlot(state.submissionId, state.currentJudge);
+    }
+    if (state.otherJudgeRunId && !state.otherDone) {
+      await this.releaseSlot(state.submissionId, "tracks");
     }
   }
 
