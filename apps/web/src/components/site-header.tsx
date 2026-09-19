@@ -67,15 +67,6 @@ export function SiteHeader() {
               <DropdownMenuItem asChild>
                 <Link href="/profile">Profile</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/submit">Submit</Link>
-              </DropdownMenuItem>
-              {organizer ? (
-                <DropdownMenuItem asChild>
-                  <Link href="/org">Organizer</Link>
-                </DropdownMenuItem>
-              ) : null}
-              <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => void signOut({ callbackUrl: "/" })}>
                 Log out
               </DropdownMenuItem>

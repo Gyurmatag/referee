@@ -143,7 +143,7 @@ export async function upsertUser(
       `INSERT INTO users (id, github_login, github_id, name, avatar_url, luma_email, luma_verified, role, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(github_login) DO UPDATE SET
-         name = COALESCE(excluded.name, users.name),
+         name = COALESCE(users.name, excluded.name),
          avatar_url = COALESCE(excluded.avatar_url, users.avatar_url),
          luma_email = COALESCE(excluded.luma_email, users.luma_email),
          luma_verified = excluded.luma_verified,
@@ -162,6 +162,17 @@ export async function upsertUser(
     )
     .run();
   return { verified, role };
+}
+
+export async function getUserByLogin(db: D1Database, login: string) {
+  return db
+    .prepare("SELECT id, github_login, name, avatar_url, role FROM users WHERE github_login = ?")
+    .bind(login)
+    .first<{ id: string; github_login: string; name: string | null; avatar_url: string | null; role: string }>();
+}
+
+export async function updateUserName(db: D1Database, login: string, name: string) {
+  await db.prepare("UPDATE users SET name = ? WHERE github_login = ?").bind(name, login).run();
 }
 
 export async function insertSubmission(

@@ -25,8 +25,10 @@ import {
   updateEventRow,
   updateJudgeRun,
   updateSubmission,
+  updateUserName,
   upsertOverride,
   upsertUser,
+  getUserByLogin,
   type CoreEnv,
 } from "./db/queries.js";
 import { handleCron } from "./cron.js";
@@ -104,13 +106,26 @@ app.post("/users/me", async (c) => {
   const id = c.req.header("x-user-id") || `user_${parsed.data.github_login}`;
   const role = roleColumn(parsed.data.github_login, c.env.ORGANIZER_LOGINS);
   const result = await upsertUser(c.env.DB, { id, ...parsed.data, role });
+  const stored = await getUserByLogin(c.env.DB, parsed.data.github_login);
   return c.json({
     id,
+    name: stored?.name ?? parsed.data.name ?? null,
     luma_email: parsed.data.luma_email ?? null,
     luma_verified: result.verified,
     role,
     roles: rolesForLogin(parsed.data.github_login, c.env.ORGANIZER_LOGINS),
   });
+});
+
+app.patch("/users/me", async (c) => {
+  if (!requireInternal(c)) return c.json({ error: "unauthorized" }, 401);
+  const login = c.req.header("x-user-id") || "";
+  const body = z.object({ name: z.string().trim().min(1).max(80) }).safeParse(await c.req.json().catch(() => ({})));
+  if (!login || !body.success) return c.json({ error: "invalid name" }, 400);
+  await updateUserName(c.env.DB, login, body.data.name);
+  const stored = await getUserByLogin(c.env.DB, login);
+  if (!stored) return c.json({ error: "not found" }, 404);
+  return c.json({ login: stored.github_login, name: stored.name });
 });
 
 app.post("/submissions", async (c) => {
