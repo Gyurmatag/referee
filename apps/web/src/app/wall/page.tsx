@@ -219,7 +219,7 @@ export default function WallPage() {
                               key={key}
                               src={`/api/evidence?key=${encodeURIComponent(key)}`}
                               alt=""
-                              className="h-20 w-full rounded-[2px] border border-black/10 object-cover object-top"
+                              className="aspect-[16/10] w-full rounded-[2px] border border-black/10 bg-white object-contain"
                             />
                           ))}
                         </div>

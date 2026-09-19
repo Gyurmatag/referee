@@ -22,7 +22,11 @@ export function ShotGallery({
             rel="noreferrer"
             className="overflow-hidden rounded-[10px] border border-black/10 bg-[#f3f3f3]"
           >
-            <img src={srcFor(key)} alt="E2E screenshot" className="h-36 w-full object-cover object-top" />
+            <img
+              src={srcFor(key)}
+              alt="E2E screenshot"
+              className="aspect-[16/10] w-full bg-white object-contain"
+            />
             <p className="truncate px-2 py-1 font-mono text-[10px] text-muted-foreground">
               {key.split("/").pop()}
             </p>
