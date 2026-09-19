@@ -4,7 +4,7 @@ import {
   parentOfFirstInWindow,
   reviewUrlFromPr,
 } from "../src/review/fork-pr.js";
-import { reviewFromE2e } from "../src/review/sandbox-review-helpers.js";
+import { E2E_CAPTURE_JS, reviewFromE2e } from "../src/review/sandbox-review-helpers.js";
 import { parseLumaHtml, parseGuestCsv } from "../src/luma/event.js";
 import { isQuotaSignature, retentionCutoff } from "../src/cron-helpers.js";
 
@@ -64,6 +64,11 @@ describe("review helpers", () => {
     expect(review.screenshots).toHaveLength(1);
     expect(review.summary_score).toBeGreaterThan(0.9);
     expect(review.pr_url).toBe("");
+  });
+
+  it("launches Chromium without a sandbox in the capture script", () => {
+    expect(E2E_CAPTURE_JS).toContain("--no-sandbox");
+    expect(E2E_CAPTURE_JS).toContain("/tmp/referee-target.txt");
   });
 });
 

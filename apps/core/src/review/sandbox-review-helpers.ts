@@ -2,9 +2,10 @@ import type { Provenance, Review } from "@referee/shared";
 import { heuristicReviewScore } from "./fork-pr.js";
 
 export const E2E_CAPTURE_JS = `import { chromium } from "playwright";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
-const target = process.env.TARGET_URL || "";
+const target = process.env.TARGET_URL
+  || (existsSync("/tmp/referee-target.txt") ? readFileSync("/tmp/referee-target.txt", "utf8").trim() : "");
 mkdirSync("/out/evidence", { recursive: true });
 
 if (!target) {
@@ -23,7 +24,10 @@ const pages = [
   { name: "health", url: target.replace(/\\/$/, "") + "/health" },
 ];
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({
+  headless: true,
+  args: ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+});
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 let pass = 0;
 let fail = 0;

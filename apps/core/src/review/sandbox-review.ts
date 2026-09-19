@@ -2,6 +2,7 @@ import type { Review, Submission } from "@referee/shared";
 import type { CoreEnv } from "../db/queries.js";
 import { openSandbox } from "../sandbox/client.js";
 import { evidenceKey, guessContentType, putBytes, putText } from "../sandbox/evidence.js";
+import { destroySubmissionSandbox } from "../sandbox/lifecycle.js";
 import { E2E_CAPTURE_JS, reviewFromE2e } from "./sandbox-review-helpers.js";
 
 export { E2E_CAPTURE_JS, reviewFromE2e } from "./sandbox-review-helpers.js";
@@ -26,7 +27,13 @@ function skippedReview(sub: Submission, fail = 1): Review {
 
 export async function runSandboxReview(env: CoreEnv, sub: Submission): Promise<Review> {
   if (!env.Sandbox) return skippedReview(sub);
-  const sandbox = openSandbox(env, sub.id);
+  let sandbox = openSandbox(env, sub.id);
+  try {
+    await sandbox.exec("true");
+  } catch {
+    await destroySubmissionSandbox(env, sub.id).catch(() => undefined);
+    sandbox = openSandbox(env, sub.id);
+  }
   const repo = await sandbox.exists("/work/repo").catch(() => ({ exists: false }));
   if (!repo.exists) {
     await sandbox.mkdir("/work", { recursive: true });
@@ -41,11 +48,34 @@ export async function runSandboxReview(env: CoreEnv, sub: Submission): Promise<R
   );
   const fileCount = Number.parseInt((files.stdout || "").trim(), 10) || 0;
   const target = (sub.deployment?.url || sub.live_url || "").trim();
+  await sandbox.writeFile("/tmp/referee-target.txt", target);
   await sandbox.writeFile("/tmp/referee-e2e.mjs", E2E_CAPTURE_JS);
-  await sandbox.exec("npx --yes -p playwright@1.55.0 node /tmp/referee-e2e.mjs", {
-    timeout: 180_000,
-    env: { TARGET_URL: target, CI: "true", npm_config_update_notifier: "false" },
-  });
+  let ran = { stdout: "", stderr: "", success: false };
+  try {
+    ran = await sandbox.exec(
+      "TARGET_URL=$(cat /tmp/referee-target.txt) npx --yes -p playwright@1.55.0 node /tmp/referee-e2e.mjs",
+      { timeout: 180_000 },
+    );
+  } catch (error) {
+    ran = { stdout: "", stderr: error instanceof Error ? error.message : "e2e exec failed", success: false };
+  }
+  try {
+    await putText(
+      env.EVIDENCE,
+      evidenceKey(sub.id, "review", "e2e.log"),
+      `${ran.stdout || ""}\n${ran.stderr || ""}`.trim() || "no playwright output",
+      "text/plain",
+    );
+  } catch {
+    // optional
+  }
+  const homeShot = await sandbox.exists("/out/evidence/e2e-home.png").catch(() => ({ exists: false }));
+  if (!homeShot.exists && target) {
+    await sandbox.exec(
+      `npx --yes playwright@1.55.0 screenshot --viewport-size=1280,800 "$(cat /tmp/referee-target.txt)" /out/evidence/e2e-home.png`,
+      { timeout: 90_000 },
+    ).catch(() => undefined);
+  }
 
   let pass = 0;
   let fail = 0;
