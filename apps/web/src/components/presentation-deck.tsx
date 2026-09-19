@@ -305,8 +305,8 @@ const slides: Slide[] = [
           the judging.
         </Display>
         <Line>
-          Build, tracks, and rubric — real Devin API sessions against the repo. Not a summary of the
-          README.
+          Playbooks start build and tracks in parallel. Each session writes report.json after every
+          phase. Failed CI starts Devin again. Open /devin for the sessions.
         </Line>
       </div>
     ),

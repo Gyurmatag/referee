@@ -71,4 +71,18 @@ On Submit, paste one `KEY=value` per line. Devin writes `.env` / `.dev.vars` in 
 
 ## Devin
 
-The judge is a real Devin CLI session (`apps/core/src/runner/cli-sandbox.ts`, `judge/run.sh`). The playbook is `apps/core/src/runner/build-e2e-prompt.ts`. Devin writes `/out/report.json` after each phase. That is the review loop.
+Live index: https://referee-web.cfi-ops.workers.dev/devin
+
+The judge is a real Devin CLI session (`apps/core/src/runner/cli-sandbox.ts`, `judge/run.sh`). Official playbooks live in `playbooks/` and on app.devin.ai:
+
+- !referee-judge https://app.devin.ai/playbooks/playbook-5088bf08a2f943299d9bb0479e57a3e0
+- !referee-tracks https://app.devin.ai/playbooks/playbook-f995bf6956394bde8faf68fd10cd7b26
+- !referee-ci https://app.devin.ai/playbooks/playbook-30718181af3542a3bfb9e04760013501
+
+Parallel sessions from this event:
+
+- https://app.devin.ai/sessions/272d72a99ce14558ae7bef41a895c7cc
+- https://app.devin.ai/sessions/6ac38e61548e41bfa56203676d180b57
+- https://app.devin.ai/sessions/3fb1447054a74fe3b4962af173e1d7ec
+
+Devin writes `/out/report.json` after each phase. That is the review loop. `.github/workflows/ci.yml` runs tests. If a PR check fails, `.github/workflows/devin-ci-fix.yml` starts `!referee-ci`.

@@ -56,10 +56,10 @@ export default function LandingPage() {
           <article className="tile p-8">
             <h3 className="text-xl font-medium">Judge in parallel</h3>
             <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-              <li>Build, tracks, and review on each repo</li>
+              <li>Playbooks start build and tracks sessions in parallel</li>
               <li>Sandbox clones the repo and runs Playwright e2e</li>
               <li>Teams can take over the isolated browser to finish login</li>
-              <li>Screenshots land on the event wall</li>
+              <li>Open /devin for sessions, playbooks, and CI</li>
             </ul>
           </article>
           <article className="tile p-8">

@@ -50,6 +50,9 @@ export type CoreEnv = {
   DEVIN_API_TOKEN?: string;
   DEVIN_SERVICE_TOKEN?: string;
   DEVIN_ORG_ID?: string;
+  DEVIN_PLAYBOOK_BUILD?: string;
+  DEVIN_PLAYBOOK_TRACKS?: string;
+  DEVIN_PLAYBOOK_CI?: string;
   WALL?: DurableObjectNamespace;
   ORGANIZER_LOGINS?: string;
 };

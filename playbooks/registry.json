@@ -1,0 +1,46 @@
+{
+  "org": "org-0a801a4239fb48bcbbd0fa97a299c7a1",
+  "playbooks": [
+    {
+      "macro": "!referee-judge",
+      "id": "playbook-5088bf08a2f943299d9bb0479e57a3e0",
+      "title": "Referee build + e2e judge",
+      "file": "playbooks/judge-build-e2e.devin.md",
+      "url": "https://app.devin.ai/playbooks/playbook-5088bf08a2f943299d9bb0479e57a3e0"
+    },
+    {
+      "macro": "!referee-tracks",
+      "id": "playbook-f995bf6956394bde8faf68fd10cd7b26",
+      "title": "Referee tracks judge",
+      "file": "playbooks/judge-tracks.devin.md",
+      "url": "https://app.devin.ai/playbooks/playbook-f995bf6956394bde8faf68fd10cd7b26"
+    },
+    {
+      "macro": "!referee-ci",
+      "id": "playbook-30718181af3542a3bfb9e04760013501",
+      "title": "Referee CI fix",
+      "file": "playbooks/ci-fix.devin.md",
+      "url": "https://app.devin.ai/playbooks/playbook-30718181af3542a3bfb9e04760013501"
+    }
+  ],
+  "sessions": [
+    {
+      "title": "Referee playbook review loop",
+      "id": "272d72a99ce14558ae7bef41a895c7cc",
+      "url": "https://app.devin.ai/sessions/272d72a99ce14558ae7bef41a895c7cc",
+      "playbook": "!referee-judge"
+    },
+    {
+      "title": "Referee Devin-fixed CI",
+      "id": "6ac38e61548e41bfa56203676d180b57",
+      "url": "https://app.devin.ai/sessions/6ac38e61548e41bfa56203676d180b57",
+      "playbook": "!referee-ci"
+    },
+    {
+      "title": "Referee parallel session review loop",
+      "id": "3fb1447054a74fe3b4962af173e1d7ec",
+      "url": "https://app.devin.ai/sessions/3fb1447054a74fe3b4962af173e1d7ec",
+      "playbook": "!referee-tracks"
+    }
+  ]
+}

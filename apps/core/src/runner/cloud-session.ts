@@ -31,12 +31,17 @@ export class CloudSessionRunner implements JudgeRunner {
       "Input JSON:",
       JSON.stringify(payload),
     ].join("\n");
+    const playbookId =
+      input.judge === "tracks"
+        ? this.env.DEVIN_PLAYBOOK_TRACKS
+        : this.env.DEVIN_PLAYBOOK_BUILD;
     const session = await createSession(this.env, apiToken, {
       prompt,
       title: `Referee ${input.judge} ${input.submissionId}`,
       platform: "referee",
       tags: ["referee", input.judge, input.submissionId],
       repos: [input.repo],
+      playbook_id: playbookId,
     });
     await insertIngestToken(this.env.DB, {
       token,
@@ -73,7 +78,14 @@ export class CloudSessionRunner implements JudgeRunner {
 async function createSession(
   env: CoreEnv,
   apiToken: string,
-  body: { prompt: string; title: string; platform: string; tags: string[]; repos: string[] },
+  body: {
+    prompt: string;
+    title: string;
+    platform: string;
+    tags: string[];
+    repos: string[];
+    playbook_id?: string;
+  },
 ): Promise<{ session_id: string; url: string }> {
   const org = (env.DEVIN_ORG_ID || "").trim();
   const service = (env.DEVIN_SERVICE_TOKEN || "").trim();
@@ -83,14 +95,19 @@ async function createSession(
     attempts.push({
       url: `https://api.devin.ai/v3/organizations/${org}/sessions`,
       token: service,
-      payload: { ...body, platform: body.platform, unlisted: true },
+      payload: { ...body, platform: body.platform },
     });
   }
   if (personal) {
     attempts.push({
       url: "https://api.devin.ai/v1/sessions",
       token: personal,
-      payload: { prompt: body.prompt, title: body.title, tags: body.tags, unlisted: true },
+      payload: {
+        prompt: body.prompt,
+        title: body.title,
+        tags: body.tags,
+        playbook_id: body.playbook_id,
+      },
     });
   }
   if (attempts.length === 0) {

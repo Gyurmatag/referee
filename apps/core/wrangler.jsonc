@@ -21,7 +21,10 @@
     "CLOUDFLARE_ACCOUNT_ID": "67d05e471e1ffe25b7ba89dc94d53c1e",
     "WORKERS_DEV_SUBDOMAIN": "cfi-ops",
     "DEVIN_OUTPOST_ID": "outpost_env-f6584ab25cad4024aaca256d05d169e7",
-    "DEVIN_ORG_ID": "org-0a801a4239fb48bcbbd0fa97a299c7a1"
+    "DEVIN_ORG_ID": "org-0a801a4239fb48bcbbd0fa97a299c7a1",
+    "DEVIN_PLAYBOOK_BUILD": "playbook-5088bf08a2f943299d9bb0479e57a3e0",
+    "DEVIN_PLAYBOOK_TRACKS": "playbook-f995bf6956394bde8faf68fd10cd7b26",
+    "DEVIN_PLAYBOOK_CI": "playbook-30718181af3542a3bfb9e04760013501"
   },
   "d1_databases": [
     {

@@ -78,6 +78,17 @@ export function LiveView({
       {sub.has_secrets ? (
         <p className="text-sm text-muted-foreground">Team secrets were passed to Devin. Values are hidden.</p>
       ) : null}
+      {sub.devin_links.length > 0 ? (
+        <ul className="text-sm">
+          {sub.devin_links.map((href) => (
+            <li key={href}>
+              <a className="underline" href={href} target="_blank" rel="noreferrer">
+                {href}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {sub.claims.length > 0 ? (
         <div className="box p-5">
           <p className="text-sm text-muted-foreground">Sponsor claims</p>

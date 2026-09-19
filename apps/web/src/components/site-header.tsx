@@ -38,6 +38,9 @@ export function SiteHeader() {
         <Link href="/events" className="text-muted-foreground hover:text-foreground">
           Events
         </Link>
+        <Link href="/devin" className="text-muted-foreground hover:text-foreground">
+          Devin
+        </Link>
         {eventId ? (
           <>
             <Link

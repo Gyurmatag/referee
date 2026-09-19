@@ -38,7 +38,7 @@ export function ProductPreview() {
             <span className="mt-0.5 size-7 shrink-0 rounded-[2px] bg-[#d9d9d9]" />
           </div>
 
-          <p className="mt-4 text-[12px] text-muted-foreground">Used playbook: sandbox review</p>
+          <p className="mt-4 text-[12px] text-muted-foreground">Used playbook: !referee-judge</p>
           <p className="mt-2 max-w-[52ch] text-[13px] leading-5 text-muted-foreground">
             Sandbox clone - Playwright e2e - screenshots on this page after the run.
           </p>
