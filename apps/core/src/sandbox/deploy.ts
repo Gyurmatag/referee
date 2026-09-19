@@ -1,15 +1,9 @@
 import type { Deployment, Recipe } from "@referee/shared";
 import type { CoreEnv } from "../db/queries.js";
 import { openSandbox } from "./client.js";
-import {
-  deployNotes,
-  inferStaticStart,
-  probeUrl,
-  recipeHasStart,
-  shellQuote,
-  waitForOk,
-} from "./deploy-helpers.js";
+import { deployNotes, inferStaticStart, probeUrl, recipeHasStart, waitForOk } from "./deploy-helpers.js";
 import { sandboxName } from "./lifecycle.js";
+import { publishToWorkersDev } from "./workers-deploy.js";
 
 export { deployNotes, inferStaticStart, probeUrl, recipeHasStart, waitForOk };
 
@@ -19,15 +13,9 @@ export type DeployInput = {
   sha: string;
   recipe: Recipe;
   liveUrl?: string | null;
+  teamName?: string;
   runHints?: string;
 };
-
-function envPrefix(env: Record<string, string>): string {
-  return Object.entries(env)
-    .filter(([k, v]) => /^[A-Z_][A-Z0-9_]*$/.test(k) && !/[\n\r]/.test(v))
-    .map(([k, v]) => `${k}=${shellQuote(v)}`)
-    .join(" ");
-}
 
 export async function deploySubmission(
   env: CoreEnv,
@@ -44,13 +32,24 @@ export async function deploySubmission(
     port: input.recipe.port || null,
     healthy: liveOk,
     last_seen_at: now,
+    notes: "",
   };
 
+  if (liveOk) {
+    return { ...base, method: "live_url", url: live, healthy: true };
+  }
+
+  const token = env.CLOUDFLARE_API_TOKEN?.trim() || "";
+  const accountId = env.CLOUDFLARE_ACCOUNT_ID?.trim() || "";
+  if (!token || !accountId) {
+    return {
+      ...base,
+      notes: "Cloudflare token missing - cannot publish to cfi-ops.workers.dev",
+    };
+  }
+
   if (!env.Sandbox) {
-    if (live) {
-      return { ...base, method: "live_url", url: live, healthy: liveOk };
-    }
-    return { ...base, method: "none" };
+    return { ...base, notes: "Sandbox missing - cannot publish to cfi-ops.workers.dev" };
   }
 
   try {
@@ -71,11 +70,6 @@ export async function deploySubmission(
       if (inferred) recipe = inferred;
     }
 
-    if (recipe.needs_db) {
-      await sandbox.startProcess("postgres", { processId: "referee-postgres" }).catch(() => undefined);
-      await sandbox.startProcess("redis-server", { processId: "referee-redis" }).catch(() => undefined);
-    }
-
     if (recipe.install.trim()) {
       const nodeModules = await sandbox.exists("/work/repo/node_modules").catch(() => ({ exists: false }));
       if (!nodeModules.exists) {
@@ -86,73 +80,36 @@ export async function deploySubmission(
       await sandbox.exec(`cd /work/repo && ${recipe.build}`, { timeout: 180_000 });
     }
 
-    if (!recipeHasStart(recipe) && !live) {
-      return { ...base, method: "none", last_seen_at: new Date().toISOString() };
+    const published = await publishToWorkersDev(sandbox, {
+      teamName: input.teamName || input.submissionId,
+      token,
+      accountId,
+      subdomain: env.WORKERS_DEV_SUBDOMAIN?.trim() || "cfi-ops",
+    });
+    if (!published.url) {
+      return {
+        ...base,
+        last_seen_at: new Date().toISOString(),
+        notes: published.error || "wrangler deploy failed",
+      };
     }
 
-    const port = recipe.port || 3000;
-    let localOk = false;
-    if (recipeHasStart(recipe)) {
-      const prefix = envPrefix(recipe.env);
-      const command = prefix
-        ? `cd /work/repo && ${prefix} ${recipe.start}`
-        : `cd /work/repo && ${recipe.start}`;
-      await sandbox.startProcess(command, {
-        processId: "referee-app",
-        env: recipe.env,
-      });
-      localOk = await waitForOk(async () => {
-        const curl = await sandbox.exec(`curl -sf -o /dev/null -w "%{http_code}" http://127.0.0.1:${port}/`);
-        const code = Number.parseInt((curl.stdout || "").trim(), 10);
-        return Number.isFinite(code) && code >= 200 && code < 400;
-      }, 90_000);
-      if (!localOk && !liveOk) {
-        return {
-          ...base,
-          method: live ? "live_url" : "none",
-          url: live,
-          healthy: liveOk,
-          port,
-          last_seen_at: new Date().toISOString(),
-        };
-      }
-    }
-
-    let sandboxUrl = "";
-    try {
-      const named = env.TUNNEL_HOSTNAME?.trim();
-      const tunnel = named
-        ? await sandbox.tunnels.get(port, { name: named.split(".")[0] })
-        : await sandbox.tunnels.get(port);
-      sandboxUrl = "url" in tunnel && tunnel.url ? tunnel.url : "";
-      if (!sandboxUrl && "hostname" in tunnel && tunnel.hostname) {
-        sandboxUrl = `https://${tunnel.hostname}`;
-      }
-    } catch {
-      sandboxUrl = "";
-    }
-
-    const publicOk = sandboxUrl
-      ? await waitForOk(() => probeUrl(sandboxUrl), 60_000, 3_000)
-      : false;
-    const method = liveOk ? "live_url" : sandboxUrl ? "sandbox" : live ? "live_url" : "none";
+    const healthy = await waitForOk(() => probeUrl(published.url), 60_000, 3_000);
     return {
-      method,
-      url: liveOk ? live : sandboxUrl || live,
-      sandbox_url: sandboxUrl,
+      method: "workers",
+      url: published.url,
+      sandbox_url: published.url,
       sandbox_id: sandboxName(input.submissionId),
-      port,
-      healthy: liveOk || publicOk || localOk,
+      port: recipe.port || null,
+      healthy,
       last_seen_at: new Date().toISOString(),
+      notes: healthy ? `workers ${published.url}` : `published ${published.url} but health check failed`,
     };
   } catch {
     return {
       ...base,
-      method: live ? "live_url" : "none",
-      url: live,
-      healthy: liveOk,
       last_seen_at: new Date().toISOString(),
-      sandbox_url: base.sandbox_url,
+      notes: "workers publish threw",
     };
   }
 }

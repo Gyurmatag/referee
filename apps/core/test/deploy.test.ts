@@ -6,6 +6,7 @@ import {
   waitForOk,
   probeUrl,
 } from "../src/sandbox/deploy-helpers.js";
+import { refereeWranglerConfig, workerScriptName, workersDevUrl } from "../src/sandbox/workers-deploy.js";
 
 describe("deploy helpers", () => {
   it("detects a start command", () => {
@@ -32,14 +33,25 @@ describe("deploy helpers", () => {
   it("formats deploy notes", () => {
     expect(
       deployNotes({
-        method: "sandbox",
-        url: "https://x.trycloudflare.com",
-        sandbox_url: "https://x.trycloudflare.com",
+        method: "workers",
+        url: "https://hackathon-team-danube.cfi-ops.workers.dev",
+        sandbox_url: "https://hackathon-team-danube.cfi-ops.workers.dev",
         sandbox_id: "sub-1",
         port: 3000,
         healthy: true,
         last_seen_at: "",
+        notes: "",
       }),
-    ).toContain("sandbox");
+    ).toContain("cfi-ops.workers.dev");
+  });
+
+  it("names hackathon workers on cfi-ops.workers.dev", () => {
+    expect(workerScriptName("Team Danube")).toBe("hackathon-team-danube");
+    expect(workersDevUrl("hackathon-team-danube")).toBe(
+      "https://hackathon-team-danube.cfi-ops.workers.dev",
+    );
+    expect(refereeWranglerConfig("hackathon-team-danube", "/tmp/referee-assets")).toContain(
+      "workers_dev",
+    );
   });
 });

@@ -49,6 +49,7 @@ export async function waitForOk(
 }
 
 export function deployNotes(deployment: Deployment): string {
+  if (deployment.notes && !deployment.healthy) return deployment.notes;
   if (deployment.healthy) return `${deployment.method} ${deployment.url}`;
   if (deployment.url) return `unhealthy ${deployment.method} ${deployment.url}`;
   return "no public url";

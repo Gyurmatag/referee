@@ -35,7 +35,7 @@ export function ProductPreview() {
           />
           <JobCard
             repo="Gyurmatag/budapest-voice-desk"
-            title="No live URL - sandbox deploy"
+            title="No live URL - cfi-ops.workers.dev"
             meta="undeployed control · +25 −131"
           />
 

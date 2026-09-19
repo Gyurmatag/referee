@@ -12,7 +12,7 @@ export const PhaseSchema = z.enum([
 
 export const BuildStatusSchema = z.enum(["ok", "failed", "skipped"]);
 export const ClaimResultSchema = z.enum(["pass", "fail", "partial", "untestable"]);
-export const DeployMethodSchema = z.enum(["live_url", "sandbox", "none"]);
+export const DeployMethodSchema = z.enum(["live_url", "sandbox", "workers", "none"]);
 export const JudgeKindSchema = z.enum(["build_e2e", "tracks"]);
 
 export const RecipeSchema = z.object({

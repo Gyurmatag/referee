@@ -104,7 +104,7 @@ export default function RegisterPage() {
             <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
               <li>GitHub repo and optional live URL</li>
               <li>Sponsor claims prefilled from the event</li>
-              <li>Empty live URL means the sandbox deploys</li>
+              <li>Empty live URL means Cloudflare deploys to cfi-ops.workers.dev</li>
             </ul>
           </article>
           <article className="tile p-8">

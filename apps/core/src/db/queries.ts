@@ -36,6 +36,9 @@ export type CoreEnv = {
   JUDGE_RUNNER_BUILD_E2E: string;
   JUDGE_RUNNER_TRACKS: string;
   TUNNEL_HOSTNAME?: string;
+  CLOUDFLARE_API_TOKEN?: string;
+  CLOUDFLARE_ACCOUNT_ID?: string;
+  WORKERS_DEV_SUBDOMAIN?: string;
   CORE_PUBLIC_URL?: string;
   DEVIN_WEBHOOK_BUILD_URL?: string;
   DEVIN_WEBHOOK_BUILD_SECRET?: string;

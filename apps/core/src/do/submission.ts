@@ -433,6 +433,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
       sha: sub.head_sha,
       recipe,
       liveUrl: sub.live_url,
+      teamName: sub.team_name,
       runHints: sub.run_hints,
     });
     await upsertDeployment(this.env.DB, sub.id, deployment);

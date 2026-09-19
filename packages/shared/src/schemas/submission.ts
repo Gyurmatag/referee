@@ -54,13 +54,14 @@ export const ProvenanceSchema = z.object({
 });
 
 export const DeploymentSchema = z.object({
-  method: z.enum(["live_url", "sandbox", "none"]).default("none"),
+  method: z.enum(["live_url", "sandbox", "workers", "none"]).default("none"),
   url: z.string().default(""),
   sandbox_url: z.string().default(""),
   sandbox_id: z.string().default(""),
   port: z.number().int().nullable().default(null),
   healthy: z.boolean().default(false),
   last_seen_at: z.string().default(""),
+  notes: z.string().default(""),
 });
 
 export const ReviewSchema = z.object({
