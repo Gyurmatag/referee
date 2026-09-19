@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { CreateSubmissionSchema, EventPublicSchema, type EventPublic } from "@referee/shared";
+import {
+  CreateSubmissionSchema,
+  EventPublicSchema,
+  mergeDemoLogin,
+  type EventPublic,
+} from "@referee/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DEFAULT_EVENT } from "@/lib/core";
@@ -44,7 +49,11 @@ export default function SubmitPage() {
       repo_url: form.get("repo_url"),
       live_url: form.get("live_url") || "",
       claims: selected.map((claim) => ({ claim })),
-      run_hints: form.get("run_hints") || "",
+      run_hints: mergeDemoLogin(
+        String(form.get("run_hints") || ""),
+        String(form.get("demo_user") || ""),
+        String(form.get("demo_password") || ""),
+      ),
       devin_links: [],
       display_consent: true,
       event_id: id,
@@ -126,6 +135,17 @@ export default function SubmitPage() {
               )}
             </fieldset>
             {errors.claims ? <p className="text-sm text-fail">{errors.claims}</p> : null}
+            <label className="text-sm">
+              Demo login
+              <input name="demo_user" type="email" placeholder="judge@team.dev" className="field" autoComplete="off" />
+            </label>
+            <label className="text-sm">
+              Demo password
+              <input name="demo_password" type="password" placeholder="Optional team account" className="field" autoComplete="new-password" />
+              <span className="mt-1 block text-xs text-muted-foreground">
+                Use a team email and password if the app has a login wall. We cannot finish Google or GitHub OAuth.
+              </span>
+            </label>
             <label className="text-sm">
               Run hints
               <textarea name="run_hints" className="field-area" />

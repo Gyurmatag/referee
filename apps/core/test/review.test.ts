@@ -69,6 +69,8 @@ describe("review helpers", () => {
   it("launches Chromium without a sandbox in the capture script", () => {
     expect(E2E_CAPTURE_JS).toContain("--no-sandbox");
     expect(E2E_CAPTURE_JS).toContain("/tmp/referee-target.txt");
+    expect(E2E_CAPTURE_JS).toContain("/tmp/referee-demo.json");
+    expect(E2E_CAPTURE_JS).not.toContain("Continue with Google");
   });
 });
 

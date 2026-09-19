@@ -162,7 +162,8 @@ const slides: Slide[] = [
         </Display>
         <Line>
           Each team gets an isolated Cloudflare sandbox. It clones the repo, installs, builds, and
-          runs Playwright. Screenshots land on the wall.
+          runs Playwright. If they leave a demo email and password, we sign in. We cannot finish
+          Google or GitHub OAuth.
         </Line>
       </div>
     ),

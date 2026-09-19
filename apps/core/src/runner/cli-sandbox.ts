@@ -1,5 +1,5 @@
 import { getSandbox, type Sandbox } from "@cloudflare/sandbox";
-import { parseJudgeReport, type JudgeReport, type Phase } from "@referee/shared";
+import { parseDemoLogin, parseJudgeReport, type JudgeReport, type Phase } from "@referee/shared";
 import type { CoreEnv } from "../db/queries.js";
 import {
   evidenceKey,
@@ -7,6 +7,7 @@ import {
   putBytes,
   putText,
 } from "../sandbox/evidence.js";
+import { BUILD_E2E_PROMPT } from "./build-e2e-prompt.js";
 import {
   DEVIN_CONFIG,
   lastLines,
@@ -39,6 +40,7 @@ export class CliSandboxRunner implements JudgeRunner {
       this.env.DEVIN_CREDENTIALS_TOML,
     );
     await sandbox.writeFile("/root/.config/devin/config.json", DEVIN_CONFIG);
+    await sandbox.writeFile("/judge/prompts/build_e2e.md", BUILD_E2E_PROMPT);
     await sandbox.writeFile(
       "/judge/input.json",
       JSON.stringify({
@@ -50,6 +52,7 @@ export class CliSandboxRunner implements JudgeRunner {
         window: input.window,
         hints: input.hints,
         live_url: input.liveUrl ?? "",
+        demo_login: parseDemoLogin(input.runHints),
       }),
     );
     const repo = await sandbox.exists("/work/repo").catch(() => ({ exists: false }));

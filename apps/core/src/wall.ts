@@ -1,6 +1,7 @@
 import {
   claimsFromTracks,
   EventPublicSchema,
+  redactDemoLogin,
   type EventPublic,
   type Submission,
   type TracksConfig,
@@ -64,16 +65,19 @@ export function wallPayloadFrom(input: {
   submissions: Submission[];
   events: { id?: number; submission_id: string; kind: string; message: string; at: string }[];
 }): WallPayload {
-  const judging = input.submissions.filter(
-    (s) => s.status === "judging" || s.status === "deploying" || s.status === "queued",
-  );
+  const judging = input.submissions
+    .filter((s) => s.status === "judging" || s.status === "deploying" || s.status === "queued")
+    .map((row) => ({ ...row, run_hints: redactDemoLogin(row.run_hints) }));
   return {
     event: input.event,
     in_use: input.in_use,
     queued: input.queued,
     quota_alert: input.quota_alert,
     judging,
-    submissions: input.submissions,
+    submissions: input.submissions.map((row) => ({
+      ...row,
+      run_hints: redactDemoLogin(row.run_hints),
+    })),
     teams: wallTeamsFrom(input.submissions),
     events: input.events,
   };

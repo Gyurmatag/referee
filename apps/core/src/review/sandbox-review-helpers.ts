@@ -8,6 +8,13 @@ const target = process.env.TARGET_URL
   || (existsSync("/tmp/referee-target.txt") ? readFileSync("/tmp/referee-target.txt", "utf8").trim() : "");
 mkdirSync("/out/evidence", { recursive: true });
 
+let demo = { user: "", password: "" };
+try {
+  if (existsSync("/tmp/referee-demo.json")) {
+    demo = JSON.parse(readFileSync("/tmp/referee-demo.json", "utf8"));
+  }
+} catch {}
+
 if (!target) {
   writeFileSync("/out/e2e.json", JSON.stringify({
     ok: false,
@@ -15,6 +22,7 @@ if (!target) {
     pass: 0,
     fail: 0,
     target: "",
+    signed_in: false,
   }));
   process.exit(0);
 }
@@ -31,6 +39,7 @@ const browser = await chromium.launch({
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 let pass = 0;
 let fail = 0;
+let signed_in = false;
 const shots = [];
 
 for (const item of pages) {
@@ -51,8 +60,31 @@ for (const item of pages) {
   }
 }
 
+if (demo.user && demo.password) {
+  try {
+    await page.goto(target, { waitUntil: "domcontentloaded", timeout: 25000 });
+    const user = page.locator('input[type="email"], input[name="email"], input[name="username"], input[autocomplete="username"]').first();
+    const secret = page.locator('input[type="password"]').first();
+    if (await user.count() && await secret.count()) {
+      await user.fill(demo.user);
+      await secret.fill(demo.password);
+      const submit = page.locator('button[type="submit"], input[type="submit"]').first();
+      if (await submit.count()) await submit.click();
+      else await page.keyboard.press("Enter");
+      await page.waitForTimeout(2500);
+      await page.screenshot({ path: "/out/evidence/e2e-app.png", fullPage: true });
+      signed_in = (await page.locator('input[type="password"]').count()) === 0;
+      if (signed_in) pass += 1;
+      else fail += 1;
+      shots.push({ name: "app", signed_in });
+    }
+  } catch (error) {
+    writeFileSync("/out/evidence/e2e-app.log", String(error));
+  }
+}
+
 await browser.close();
-writeFileSync("/out/e2e.json", JSON.stringify({ ok: true, target, pass, fail, shots }));
+writeFileSync("/out/e2e.json", JSON.stringify({ ok: true, target, pass, fail, signed_in, shots }));
 `;
 
 export function reviewFromE2e(input: {
@@ -78,7 +110,10 @@ export function reviewFromE2e(input: {
     `e2e ${input.pass} pass / ${input.fail} fail`,
     `${shots} screenshots`,
     input.target ? `against ${input.target}` : "no deploy url",
-  ].join(" - ");
+    input.pass > 1 ? "signed-in path exercised" : "",
+  ]
+    .filter(Boolean)
+    .join(" - ");
   return {
     fork_repo: input.repoUrl,
     pr_url: "",

@@ -10,6 +10,8 @@ export default function Loading() {
         <div className="h-10 w-full animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="h-4 w-28 animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="h-10 w-full animate-pulse rounded-[2px] bg-[#efefef]" />
+        <div className="h-4 w-24 animate-pulse rounded-[2px] bg-[#efefef]" />
+        <div className="h-10 w-full animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="h-9 w-24 animate-pulse rounded-[2px] bg-[#191919]" />
       </div>
     </main>

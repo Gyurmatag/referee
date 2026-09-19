@@ -66,6 +66,7 @@ export {
   type JudgeRun,
   type ExternalVerdict,
 } from "./schemas/submission";
+export { parseDemoLogin, mergeDemoLogin, redactDemoLogin, type DemoLogin } from "./demo-login";
 export {
   aggregate,
   confidenceFrom,

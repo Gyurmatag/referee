@@ -1,4 +1,4 @@
-import type { Review, Submission } from "@referee/shared";
+import { parseDemoLogin, type Review, type Submission } from "@referee/shared";
 import type { CoreEnv } from "../db/queries.js";
 import { openSandbox } from "../sandbox/client.js";
 import { evidenceKey, guessContentType, putBytes, putText } from "../sandbox/evidence.js";
@@ -48,7 +48,9 @@ export async function runSandboxReview(env: CoreEnv, sub: Submission): Promise<R
   );
   const fileCount = Number.parseInt((files.stdout || "").trim(), 10) || 0;
   const target = (sub.deployment?.url || sub.live_url || "").trim();
+  const demo = parseDemoLogin(sub.run_hints);
   await sandbox.writeFile("/tmp/referee-target.txt", target);
+  await sandbox.writeFile("/tmp/referee-demo.json", JSON.stringify(demo ?? { user: "", password: "" }));
   await sandbox.writeFile("/tmp/referee-e2e.mjs", E2E_CAPTURE_JS);
   let ran = { stdout: "", stderr: "", success: false };
   try {
@@ -90,7 +92,7 @@ export async function runSandboxReview(env: CoreEnv, sub: Submission): Promise<R
   }
 
   const screenshots: string[] = [];
-  const names = ["e2e-home.png", "e2e-health.png"];
+  const names = ["e2e-home.png", "e2e-health.png", "e2e-app.png"];
   try {
     const listed = await sandbox.listFiles("/out/evidence");
     const filesListed = Array.isArray(listed) ? listed : listed.files ?? [];
