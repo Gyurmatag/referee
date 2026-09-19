@@ -87,7 +87,16 @@ export function milestoneEvents(payload: WallPayload): WallLog[] {
       });
     }
   }
-  return events.sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, 16);
+  const newestFirst = events.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+  const seen = new Set<string>();
+  const unique: WallLog[] = [];
+  for (const event of newestFirst) {
+    const key = `${event.submission_id}:${event.kind}`;
+    if (event.kind !== "failed" && seen.has(key)) continue;
+    if (event.kind !== "failed") seen.add(key);
+    unique.push(event);
+  }
+  return unique.slice(0, 16);
 }
 
 export function findTeam(payload: WallPayload, id: string): WallTeam | WallRow | undefined {

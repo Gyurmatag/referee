@@ -89,7 +89,11 @@ export default function TeamLogPage() {
           <div className="box px-4 py-3">
             <p className="text-[12px] text-muted-foreground">Phase</p>
             <p className="mt-1 text-[13px]">
-              {team && "phase" in team && team.phase ? team.phase : status}
+              {status === "done" || status === "failed"
+                ? status
+                : team && "phase" in team && team.phase
+                  ? team.phase
+                  : status}
             </p>
           </div>
         </div>
