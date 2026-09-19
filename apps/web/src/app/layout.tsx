@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
+import { AppShell } from "@/components/app-shell";
 import { AuthSessionProvider } from "@/components/session-provider";
-import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
 const inter = Inter({
@@ -33,8 +33,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${geistMono.variable} min-h-screen font-sans`}>
         <AuthSessionProvider>
-          <SiteHeader />
-          {children}
+          <AppShell>{children}</AppShell>
         </AuthSessionProvider>
       </body>
     </html>
