@@ -14,6 +14,7 @@ const LUMA_DEMO_CSV = [
   "ada@budapest.build,Ada",
   "danube@budapest.build,Team Danube",
   "bridge@budapest.build,Team Chain Bridge",
+  "margaret@budapest.build,Team Margaret",
 ].join("\n");
 
 function OutpostStatus() {

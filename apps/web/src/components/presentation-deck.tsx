@@ -179,8 +179,8 @@ const slides: Slide[] = [
           takes over.
         </Display>
         <Line>
-          If the app hits Google or GitHub, we freeze the isolated browser. The team signs in
-          themselves. Judging continues in that same session.
+          Team Margaret only has Google and GitHub. We freeze the isolated browser. Someone in the
+          room signs in. Judging continues in that same session.
         </Line>
       </div>
     ),
