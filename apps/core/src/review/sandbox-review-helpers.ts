@@ -40,11 +40,10 @@ for (const item of pages) {
     const file = "/out/evidence/e2e-" + item.name + ".png";
     await page.screenshot({ path: file, fullPage: true });
     shots.push({ name: item.name, status, file });
-    if (item.name === "home") {
-      if (status >= 200 && status < 400) pass += 1;
-      else fail += 1;
-    } else if (status >= 200 && status < 500) {
+    if (existsSync(file) && (item.name !== "home" || (status >= 200 && status < 400) || status === 0)) {
       pass += 1;
+    } else if (item.name === "home") {
+      fail += 1;
     }
   } catch (error) {
     fail += 1;

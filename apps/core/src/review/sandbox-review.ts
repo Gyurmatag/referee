@@ -96,7 +96,7 @@ export async function runSandboxReview(env: CoreEnv, sub: Submission): Promise<R
     const filesListed = Array.isArray(listed) ? listed : listed.files ?? [];
     for (const file of filesListed) {
       if (file.isDirectory) continue;
-      if (/\.(png|jpg|jpeg|webp)$/i.test(file.name) && !names.includes(file.name)) {
+      if (/^e2e-.*\.(png|jpg|jpeg|webp)$/i.test(file.name) && !names.includes(file.name)) {
         names.push(file.name);
       }
     }
