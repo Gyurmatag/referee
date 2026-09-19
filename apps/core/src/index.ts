@@ -18,6 +18,7 @@ import {
   getIngestToken,
   getSubmission,
   importGuests,
+  insertEvent,
   insertSubmission,
   listOverrides,
   listSubmissions,
@@ -140,6 +141,12 @@ app.post("/submissions", async (c) => {
     devin_links: parsed.data.devin_links,
     display_consent: parsed.data.display_consent,
     created_at,
+  });
+  await insertEvent(c.env.DB, {
+    submission_id: id,
+    kind: "submitted",
+    message: `${parsed.data.team_name} submitted`,
+    at: created_at,
   });
   await submissionStub(c.env, id).fetch(
     new Request("https://submission/start", {

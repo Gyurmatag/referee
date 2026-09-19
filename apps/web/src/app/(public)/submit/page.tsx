@@ -102,7 +102,7 @@ export default function SubmitPage() {
               {errors.repo_url ? <p className="mt-1 text-fail">{errors.repo_url}</p> : null}
             </label>
             <label className="text-sm">
-              Live URL - leave empty if Cloudflare should deploy to cfi-ops.workers.dev
+              Live URL - leave empty if Devin should deploy it
               <input name="live_url" className="field" />
             </label>
             <fieldset className="flex flex-col gap-2">

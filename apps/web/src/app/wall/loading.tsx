@@ -5,7 +5,7 @@ export default function Loading() {
         <div className="h-10 w-72 animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="mt-3 h-4 w-40 animate-pulse rounded-[2px] bg-[#efefef]" />
       </div>
-      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-3">
+      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-2">
         <section className="flex flex-col gap-3">
           <div className="h-5 w-28 animate-pulse rounded-[2px] bg-[#efefef]" />
           <div className="h-16 w-full animate-pulse rounded-[2px] bg-[#efefef]" />
@@ -16,13 +16,6 @@ export default function Loading() {
           <div className="h-24 w-full animate-pulse rounded-[2px] bg-[#efefef]" />
           <div className="h-24 w-full animate-pulse rounded-[2px] bg-[#efefef]" />
           <div className="h-24 w-full animate-pulse rounded-[2px] bg-[#efefef]" />
-        </section>
-        <section className="flex flex-col gap-2">
-          <div className="h-5 w-24 animate-pulse rounded-[2px] bg-[#efefef]" />
-          <div className="h-3 w-full animate-pulse rounded-[2px] bg-[#efefef]" />
-          <div className="h-3 w-11/12 animate-pulse rounded-[2px] bg-[#efefef]" />
-          <div className="h-3 w-4/5 animate-pulse rounded-[2px] bg-[#efefef]" />
-          <div className="h-3 w-3/4 animate-pulse rounded-[2px] bg-[#efefef]" />
         </section>
       </div>
     </main>

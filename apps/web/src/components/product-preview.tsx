@@ -1,27 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
 import { ShotGallery } from "@/components/shot-gallery";
-
-type WallTeam = {
-  team_name?: string;
-  deploy_url?: string | null;
-  screenshots?: string[];
-};
-
-type WallPayload = {
-  teams?: WallTeam[];
-};
+import { useWall } from "@/hooks/use-wall";
 
 export function ProductPreview() {
-  const [teams, setTeams] = useState<WallTeam[]>([]);
-
-  useEffect(() => {
-    void fetch("/api/wall")
-      .then((r) => r.json())
-      .then((json: WallPayload) => setTeams(json.teams ?? []))
-      .catch(() => undefined);
-  }, []);
+  const { data } = useWall({ live: false });
+  const teams = data?.teams ?? [];
 
   const shots = teams.flatMap((team) =>
     (team.screenshots ?? []).map((key) => ({ team: team.team_name ?? "Team", key })),
@@ -65,7 +50,8 @@ export function ProductPreview() {
           ) : (
             teams.map((team) => (
               <JobCard
-                key={team.team_name}
+                key={team.id ?? team.team_name}
+                href={team.id ? `/wall/${team.id}` : undefined}
                 repo={team.team_name ?? "Team"}
                 title={
                   team.screenshots?.length
@@ -119,9 +105,19 @@ export function ProductPreview() {
   );
 }
 
-function JobCard({ repo, title, meta }: { repo: string; title: string; meta: string }) {
-  return (
-    <div className="mt-3 rounded-[10px] border border-black/10 bg-elevated px-3 py-2.5">
+function JobCard({
+  repo,
+  title,
+  meta,
+  href,
+}: {
+  repo: string;
+  title: string;
+  meta: string;
+  href?: string;
+}) {
+  const inner = (
+    <>
       <div className="flex items-center justify-between gap-2 text-[12px]">
         <span className="truncate text-muted-foreground">
           <span className="mr-1.5 inline-block size-2 rounded-[2px] bg-running align-middle" />
@@ -131,6 +127,14 @@ function JobCard({ repo, title, meta }: { repo: string; title: string; meta: str
       </div>
       <p className="mt-1 text-[13px] leading-5">{title}</p>
       <p className="mt-1 font-mono text-[11px] text-muted-foreground">{meta}</p>
-    </div>
+    </>
   );
+  if (href) {
+    return (
+      <Link href={href} className="mt-3 block rounded-[10px] border border-black/10 bg-elevated px-3 py-2.5">
+        {inner}
+      </Link>
+    );
+  }
+  return <div className="mt-3 rounded-[10px] border border-black/10 bg-elevated px-3 py-2.5">{inner}</div>;
 }

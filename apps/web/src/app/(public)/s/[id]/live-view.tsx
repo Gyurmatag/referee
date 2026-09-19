@@ -72,7 +72,7 @@ export function LiveView({
           </a>
         </p>
       ) : (
-        <p className="text-sm text-muted-foreground">No live URL - Cloudflare deploys to cfi-ops.workers.dev</p>
+        <p className="text-sm text-muted-foreground">No live URL - Devin will deploy it</p>
       )}
       {sub.deployment?.url ? (
         <p className="text-sm">

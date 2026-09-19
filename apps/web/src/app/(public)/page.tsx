@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { EventPublicSchema, type EventPublic } from "@referee/shared";
+import { HomeEvents } from "@/components/home-events";
 import { ProductPreview } from "@/components/product-preview";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_EVENT } from "@/lib/core";
@@ -65,6 +66,8 @@ export default function RegisterPage() {
         <ProductPreview />
       </section>
 
+      <HomeEvents />
+
       <section className="mx-auto max-w-5xl px-6 pb-24 text-center">
         <p className="text-sm text-muted-foreground">Sponsors for this event choose to</p>
         <h2 className="mt-3 text-[48px] font-medium leading-none tracking-[-0.04em] md:text-[64px]">
@@ -104,7 +107,7 @@ export default function RegisterPage() {
             <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
               <li>GitHub repo and optional live URL</li>
               <li>Sponsor claims prefilled from the event</li>
-              <li>Empty live URL means Cloudflare deploys to cfi-ops.workers.dev</li>
+              <li>Empty live URL means Devin deploys it</li>
             </ul>
           </article>
           <article className="tile p-8">
