@@ -7,7 +7,7 @@ export default function HomePage() {
       <div className="space-y-2">
         <h1 className="text-xl font-medium tracking-tight">Inbox</h1>
         <p className="text-sm text-muted-foreground">
-          Budapest Build project. Uses the OpenAI SDK, Groq inference, and ElevenLabs voice.
+          Budapest Build project. Uses the OpenAI SDK, Groq, ElevenLabs, and Devin.
         </p>
         <VoiceInbox />
       </div>

@@ -2,10 +2,4 @@
 
 Next.js + shadcn night-service board for Team Chain Bridge.
 
-Uses the OpenAI SDK.
-
-```bash
-npm install
-npm run build
-npm start
-```
+Uses the OpenAI SDK, Groq inference, ElevenLabs voice, and the Cognition Devin API.

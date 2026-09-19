@@ -130,16 +130,18 @@ CREATE TABLE IF NOT EXISTS overrides (
 );
 
 INSERT OR IGNORE INTO event (
-  id, luma_url, title, starts_at, ends_at, window_start, window_end,
+  id, luma_url, title, city, venue, starts_at, ends_at, window_start, window_end,
   rubric_json, tracks_json, reveal_scores, quota_alert
 ) VALUES (
   'default',
   '',
-  'Referee event',
-  '2026-09-19T00:00:00.000Z',
-  '2026-09-20T12:00:00.000Z',
-  '2026-09-19T00:00:00.000Z',
-  '2026-09-20T12:00:00.000Z',
+  'Budapest Build',
+  'Budapest',
+  'Impact Hub Budapest',
+  '2026-09-19T07:00:00.000Z',
+  '2026-09-20T16:00:00.000Z',
+  '2026-09-19T07:00:00.000Z',
+  '2026-09-20T16:00:00.000Z',
   '{}',
   '{}',
   0,

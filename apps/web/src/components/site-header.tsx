@@ -35,11 +35,9 @@ export function SiteHeader() {
             R
           </span>
         </Link>
-        {login ? (
-          <Link href="/events" className="hidden text-muted-foreground hover:text-foreground sm:inline">
-            Events
-          </Link>
-        ) : null}
+        <Link href="/events" className="hidden text-muted-foreground hover:text-foreground sm:inline">
+          Events
+        </Link>
         {eventId ? (
           <>
             <Link

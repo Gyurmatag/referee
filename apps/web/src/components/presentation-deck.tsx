@@ -150,6 +150,21 @@ const slides: Slide[] = [
     ),
   },
   {
+    id: "teams",
+    theme: "wash",
+    render: () => (
+      <div className="flex w-full max-w-5xl flex-col items-start gap-10">
+        <Kicker>The room tonight</Kicker>
+        <Display>Three teams.</Display>
+        <div className="grid w-full gap-3 md:grid-cols-3">
+          <Box label="Danube" hint="No live URL. Devin deploys it." />
+          <Box label="Chain Bridge" hint="Already live on workers.dev." />
+          <Box label="Margaret" hint="Live, Google login. The room takes over." />
+        </div>
+      </div>
+    ),
+  },
+  {
     id: "sandbox",
     theme: "wash",
     render: () => (

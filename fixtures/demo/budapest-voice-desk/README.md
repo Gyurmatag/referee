@@ -2,7 +2,7 @@
 
 Next.js + shadcn voice desk for Team Danube.
 
-Uses the OpenAI SDK, Groq inference, and ElevenLabs voice.
+Uses the OpenAI SDK, Groq inference, ElevenLabs voice, and the Cognition Devin API.
 
 ```bash
 npm install
