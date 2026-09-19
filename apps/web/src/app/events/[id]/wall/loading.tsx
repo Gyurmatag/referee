@@ -1,11 +1,11 @@
 export default function Loading() {
   return (
-    <main className="min-h-[calc(100vh-72px)] bg-background px-6 pb-16 pt-8">
-      <div className="mx-auto mb-10 max-w-6xl">
+    <main className="shell min-h-[calc(100vh-72px)] pb-16 pt-8">
+      <div className="mb-10">
         <div className="h-10 w-72 animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="mt-3 h-4 w-40 animate-pulse rounded-[2px] bg-[#efefef]" />
       </div>
-      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-2">
+      <div className="grid gap-8 lg:grid-cols-2">
         <section className="flex flex-col gap-3">
           <div className="h-5 w-28 animate-pulse rounded-[2px] bg-[#efefef]" />
           <div className="h-16 w-full animate-pulse rounded-[2px] bg-[#efefef]" />

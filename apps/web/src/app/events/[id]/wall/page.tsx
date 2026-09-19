@@ -53,8 +53,8 @@ export default function EventWallPage() {
   }
   if (!data) {
     return (
-      <main className="min-h-[calc(100vh-72px)] bg-background px-6 pb-16 pt-8">
-        <div className="mx-auto max-w-6xl">
+      <main className="shell min-h-[calc(100vh-72px)] pb-16 pt-8">
+        <div>
           <div className="h-10 w-56 animate-pulse rounded-[2px] bg-[#efefef]" />
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
             <div className="box h-32 animate-pulse bg-[#f3f3f3]" />
@@ -72,17 +72,17 @@ export default function EventWallPage() {
   const place = eventPlace(data.event?.city, data.event?.venue);
 
   return (
-    <main className="min-h-[calc(100vh-72px)] bg-background px-6 pb-16 pt-8 text-foreground">
-      <div className="mx-auto mb-10 max-w-6xl">
+    <main className="shell min-h-[calc(100vh-72px)] pb-16 pt-8 text-foreground">
+      <div className="mb-10">
         <h1 className="text-4xl font-medium">{data.event?.title ?? "Wall"}</h1>
         {place ? <p className="mt-2 text-sm text-muted-foreground">{place}</p> : null}
       </div>
       {data.quota_alert ? (
-        <p className="box mx-auto mb-4 max-w-6xl px-3 py-2 text-sm text-fail">
+        <p className="box mb-4 px-3 py-2 text-sm text-fail">
           Quota alert - judge runs are failing at start
         </p>
       ) : null}
-      <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <section>
           <h2 className="mb-3 text-lg font-medium">Now judging</h2>
           {judging.length === 0 ? (

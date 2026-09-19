@@ -1,7 +1,7 @@
 export default function Loading() {
   return (
-    <main className="min-h-[calc(100vh-72px)] bg-background px-6 pb-20 pt-10">
-      <div className="mx-auto max-w-3xl">
+    <main className="shell min-h-[calc(100vh-72px)] pb-20 pt-10">
+      <div>
         <div className="h-4 w-16 animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="mt-6 h-12 w-80 animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="mt-3 h-4 w-64 animate-pulse rounded-[2px] bg-[#efefef]" />

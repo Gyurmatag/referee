@@ -51,7 +51,7 @@ export default function ProfilePage() {
 
   if (status === "loading") {
     return (
-      <main className="mx-auto max-w-lg px-6 pb-20 pt-10">
+      <main className="shell pb-20 pt-10">
         <div className="h-10 w-28 animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="box mt-8 p-6">
           <div className="flex items-center gap-4">
@@ -68,7 +68,7 @@ export default function ProfilePage() {
 
   if (!login) {
     return (
-      <main className="mx-auto max-w-lg px-6 pb-20 pt-16">
+      <main className="shell pb-20 pt-16">
         <h1 className="text-4xl font-medium">Profile</h1>
         <p className="mt-3 text-sm text-muted-foreground">Log in with GitHub to open your profile.</p>
         <Button className="mt-6" type="button" onClick={() => void signIn("github", { callbackUrl: "/profile" })}>
@@ -79,7 +79,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="mx-auto max-w-lg px-6 pb-20 pt-10">
+    <main className="shell pb-20 pt-10">
       <h1 className="text-4xl font-medium">Profile</h1>
       <form className="box mt-8 p-6" onSubmit={(e) => void onSave(e)}>
         <div className="flex items-center gap-4">

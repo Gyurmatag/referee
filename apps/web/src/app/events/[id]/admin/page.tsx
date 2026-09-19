@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { DEFAULT_RUBRIC, EventPublicSchema, type EventPublic, type Rubric } from "@referee/shared";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { DEFAULT_EVENT } from "@/lib/core";
 
 const LUMA_DEMO_CSV = [
@@ -134,14 +135,14 @@ export default function EventAdminPage() {
 
   if (error) {
     return (
-      <main className="mx-auto max-w-4xl p-6">
+      <main className="shell p-6">
         <p className="text-sm text-fail">{error}</p>
       </main>
     );
   }
   if (!ready) {
     return (
-      <main className="mx-auto flex max-w-4xl flex-col gap-6 px-6 pb-20 pt-10">
+      <main className="shell flex flex-col gap-6 pb-20 pt-10">
         <div className="h-10 w-28 animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="h-4 w-80 animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="box h-52 animate-pulse bg-[#f3f3f3]" />
@@ -151,7 +152,7 @@ export default function EventAdminPage() {
   }
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-6 px-6 pb-20 pt-10">
+    <main className="shell flex flex-col gap-6 pb-20 pt-10">
       <h1 className="text-4xl font-medium">Admin</h1>
       <p className="text-sm text-muted-foreground">Settings for {event.title}.</p>
       <OutpostStatus />
@@ -184,17 +185,20 @@ export default function EventAdminPage() {
         </CardHeader>
         <CardContent>
           {DEFAULT_RUBRIC.dimensions.map((d) => (
-            <label key={d.id} className="mb-3 flex items-center gap-3 text-sm">
-              <span className="w-40">{d.label}</span>
-              <input
-                type="range"
+            <div key={d.id} className="mb-5 grid grid-cols-[10rem_minmax(0,1fr)_2rem] items-center gap-3 text-sm">
+              <span>{d.label}</span>
+              <Slider
                 min={0}
                 max={50}
-                value={weights[d.id]}
-                onChange={(e) => setWeights((w) => ({ ...w, [d.id]: Number(e.target.value) }))}
+                step={1}
+                value={[weights[d.id] ?? 0]}
+                onValueChange={(next) =>
+                  setWeights((w) => ({ ...w, [d.id]: next[0] ?? 0 }))
+                }
+                aria-label={d.label}
               />
-              <span className="w-8 font-mono tabular-nums">{weights[d.id]}</span>
-            </label>
+              <span className="font-mono tabular-nums">{weights[d.id]}</span>
+            </div>
           ))}
           <Button className="mt-2" variant="outline" onClick={() => void saveRubric()}>
             Save weights

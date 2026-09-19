@@ -29,7 +29,7 @@ export function SiteHeader() {
   const homeHref = login ? (eventId ? `/events/${eventId}` : "/events") : "/";
 
   return (
-    <header className="flex items-center justify-between px-6 py-5 md:px-10">
+    <header className="shell flex items-center justify-between py-5">
       <nav className="flex items-center gap-7 text-sm">
         <Link href={homeHref} className="flex items-center gap-2 font-medium">
           <span className="grid size-10 place-items-center rounded-[6px] bg-foreground text-[16px] text-background">

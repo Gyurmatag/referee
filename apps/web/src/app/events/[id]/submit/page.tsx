@@ -77,7 +77,7 @@ export default function SubmitPage() {
   }
 
   return (
-    <main className="mx-auto max-w-lg px-6 pb-20 pt-10">
+    <main className="shell pb-20 pt-10">
       <h1 className="text-4xl font-medium">Submit</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Post your team for {event.title}. Claims are checked automatically.

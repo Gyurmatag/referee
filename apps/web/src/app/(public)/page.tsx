@@ -18,7 +18,7 @@ export default function LandingPage() {
 
   if (status === "authenticated" && loggedIn) {
     return (
-      <main className="mx-auto max-w-5xl px-6 pb-20 pt-16">
+      <main className="shell pb-20 pt-16">
         <div className="mx-auto h-16 w-80 animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="mx-auto mt-8 h-9 w-40 animate-pulse rounded-[2px] bg-[#191919]" />
       </main>
@@ -27,7 +27,7 @@ export default function LandingPage() {
 
   return (
     <main>
-      <section className="mx-auto flex max-w-5xl flex-col items-center px-6 pb-16 pt-16 text-center md:pt-24">
+      <section className="shell flex flex-col items-center pb-16 pt-16 text-center md:pt-24">
         <h1 className="max-w-4xl text-[56px] font-medium leading-none tracking-[-0.04em] text-foreground md:text-[80px]">
           Referee, the
           <br />
@@ -47,7 +47,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 pb-28">
+      <section className="shell pb-28">
         <h2 className="text-[48px] font-medium leading-none tracking-[-0.04em] md:text-[64px]">
           Use cases
         </h2>

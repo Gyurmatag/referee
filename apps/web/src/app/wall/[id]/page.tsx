@@ -13,7 +13,7 @@ export default function TeamLogPage() {
 
   if (error && !data) {
     return (
-      <main className="min-h-[calc(100vh-72px)] bg-background px-6 pb-16 pt-10">
+      <main className="shell min-h-[calc(100vh-72px)] pb-16 pt-10">
         <p className="text-sm text-fail">Wall unavailable</p>
       </main>
     );
@@ -21,8 +21,8 @@ export default function TeamLogPage() {
 
   if (!data) {
     return (
-      <main className="min-h-[calc(100vh-72px)] bg-background px-6 pb-16 pt-10">
-        <div className="mx-auto max-w-3xl">
+      <main className="shell min-h-[calc(100vh-72px)] pb-16 pt-10">
+        <div>
           <div className="h-4 w-24 animate-pulse rounded-[2px] bg-[#efefef]" />
           <div className="mt-6 h-12 w-72 animate-pulse rounded-[2px] bg-[#efefef]" />
           <div className="mt-8 space-y-3">
@@ -45,8 +45,8 @@ export default function TeamLogPage() {
 
   if (!team && logs.length === 0) {
     return (
-      <main className="min-h-[calc(100vh-72px)] bg-background px-6 pb-16 pt-10">
-        <div className="mx-auto max-w-3xl">
+      <main className="shell min-h-[calc(100vh-72px)] pb-16 pt-10">
+        <div>
           <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground">
             Events
           </Link>
@@ -57,8 +57,8 @@ export default function TeamLogPage() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-72px)] bg-background px-6 pb-20 pt-10 text-foreground">
-      <div className="mx-auto max-w-3xl">
+    <main className="shell min-h-[calc(100vh-72px)] pb-20 pt-10 text-foreground">
+      <div>
         <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground">
           Events
         </Link>

@@ -96,4 +96,7 @@
   .hero-frame {
     @apply overflow-hidden rounded-[10px] bg-elevated drop-shadow-[0_0_8px_#ddd];
   }
+  .shell {
+    @apply mx-auto w-full max-w-5xl px-6;
+  }
 }

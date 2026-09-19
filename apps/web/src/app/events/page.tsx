@@ -29,7 +29,7 @@ export default function EventsPage() {
 
   if (status === "loading") {
     return (
-      <main className="mx-auto max-w-3xl px-6 pb-20 pt-10">
+      <main className="shell pb-20 pt-10">
         <div className="h-10 w-36 animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="mt-8 box h-36 animate-pulse bg-[#f3f3f3]" />
         <div className="mt-4 box h-36 animate-pulse bg-[#f3f3f3]" />
@@ -39,7 +39,7 @@ export default function EventsPage() {
 
   if (!login) {
     return (
-      <main className="mx-auto max-w-lg px-6 pb-20 pt-16">
+      <main className="shell pb-20 pt-16">
         <h1 className="text-4xl font-medium">Events</h1>
         <p className="mt-3 text-sm text-muted-foreground">Log in with GitHub to see events you can join or run.</p>
         <Button className="mt-6" type="button" onClick={() => void signIn("github", { callbackUrl: "/events" })}>
@@ -51,7 +51,7 @@ export default function EventsPage() {
 
   if (error) {
     return (
-      <main className="mx-auto max-w-3xl p-6">
+      <main className="shell p-6">
         <p className="text-sm text-fail">{error}</p>
       </main>
     );
@@ -59,7 +59,7 @@ export default function EventsPage() {
 
   if (!events) {
     return (
-      <main className="mx-auto max-w-3xl px-6 pb-20 pt-10">
+      <main className="shell pb-20 pt-10">
         <div className="h-10 w-36 animate-pulse rounded-[2px] bg-[#efefef]" />
         <div className="mt-8 box h-36 animate-pulse bg-[#f3f3f3]" />
       </main>
@@ -67,7 +67,7 @@ export default function EventsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-20 pt-10">
+    <main className="shell pb-20 pt-10">
       <h1 className="text-4xl font-medium">Events</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         {organizer ? "Open an event to change settings or submit a team." : "Open an event to submit your team."}
