@@ -15,6 +15,8 @@
     "AUTH_URL": "https://referee-web.cfi-ops.workers.dev",
     "CORE_URL": "https://referee-core.cfi-ops.workers.dev",
     "ORGANIZER_LOGINS": "Gyurmatag",
+    "DEMO_JUDGE_USER": "judge@referee.dev",
+    "DEMO_JUDGE_PASS": "devin-admin",
     "NEXT_PUBLIC_CORE_URL": "https://referee-core.cfi-ops.workers.dev",
     "NEXT_PUBLIC_CORE_WS_URL": "wss://referee-core.cfi-ops.workers.dev/wall/ws"
   },

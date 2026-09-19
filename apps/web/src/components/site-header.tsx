@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -93,11 +93,11 @@ export function SiteHeader() {
           </DropdownMenu>
         ) : (
           <>
-            <Button type="button" variant="ghost" onClick={() => void signIn("github", { callbackUrl: "/" })}>
-              Log in
+            <Button asChild variant="ghost">
+              <Link href="/login">Log in</Link>
             </Button>
-            <Button type="button" onClick={() => void signIn("github", { callbackUrl: "/" })}>
-              Get started
+            <Button asChild>
+              <Link href="/login">Get started</Link>
             </Button>
           </>
         )}

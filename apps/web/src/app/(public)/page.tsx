@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { HomeEvents } from "@/components/home-events";
 import { Button } from "@/components/ui/button";
 
@@ -28,8 +28,8 @@ export default function LandingPage() {
               <Link href="/events">Open events</Link>
             </Button>
           ) : (
-            <Button type="button" size="lg" onClick={() => void signIn("github", { callbackUrl: "/" })}>
-              Continue with GitHub
+            <Button asChild size="lg">
+              <Link href="/login">Continue</Link>
             </Button>
           )}
         </div>

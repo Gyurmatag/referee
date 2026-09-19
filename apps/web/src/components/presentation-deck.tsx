@@ -257,8 +257,8 @@ const slides: Slide[] = [
         <Display>
           Live demo.
         </Display>
-        <Line>Open the wall. Three teams. Margaret signs in.</Line>
-        <p className="font-mono text-[15px] text-white/40">referee-web.cfi-ops.workers.dev</p>
+        <Line>Open /login as the judge. Then the wall. Three teams. Margaret signs in.</Line>
+        <p className="font-mono text-[15px] text-white/40">judge@referee.dev</p>
       </div>
     ),
   },
