@@ -26,12 +26,11 @@ export function SiteHeader() {
   const organizer = roles.includes("organizer");
   const image = data?.user?.image ?? "";
   const eventId = pathname.match(/^\/events\/([^/]+)/)?.[1] ?? null;
-  const homeHref = login ? (eventId ? `/events/${eventId}` : "/events") : "/";
 
   return (
     <header className="shell flex items-center justify-between py-5">
       <nav className="flex items-center gap-7 text-sm">
-        <Link href={homeHref} className="flex items-center gap-2 font-medium">
+        <Link href="/" className="flex items-center gap-2 font-medium">
           <span className="grid size-10 place-items-center rounded-[6px] bg-foreground text-[16px] text-background">
             R
           </span>
@@ -96,10 +95,10 @@ export function SiteHeader() {
           </DropdownMenu>
         ) : (
           <>
-            <Button type="button" variant="ghost" onClick={() => void signIn("github", { callbackUrl: "/events" })}>
+            <Button type="button" variant="ghost" onClick={() => void signIn("github", { callbackUrl: "/" })}>
               Log in
             </Button>
-            <Button type="button" onClick={() => void signIn("github", { callbackUrl: "/events" })}>
+            <Button type="button" onClick={() => void signIn("github", { callbackUrl: "/" })}>
               Get started
             </Button>
           </>

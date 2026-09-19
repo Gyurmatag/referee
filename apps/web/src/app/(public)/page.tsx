@@ -1,29 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 
 export default function LandingPage() {
-  const router = useRouter();
   const { data: session, status } = useSession();
   const loggedIn = Boolean(session?.user?.login);
-
-  useEffect(() => {
-    if (status === "authenticated" && loggedIn) {
-      router.replace("/events");
-    }
-  }, [loggedIn, router, status]);
-
-  if (status === "authenticated" && loggedIn) {
-    return (
-      <main className="shell pb-20 pt-16">
-        <div className="mx-auto h-16 w-80 animate-pulse rounded-[2px] bg-[#efefef]" />
-        <div className="mx-auto mt-8 h-9 w-40 animate-pulse rounded-[2px] bg-[#191919]" />
-      </main>
-    );
-  }
 
   return (
     <main>
@@ -39,8 +22,12 @@ export default function LandingPage() {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           {status === "loading" ? (
             <div className="h-9 w-44 animate-pulse rounded-[2px] bg-[#191919]" />
+          ) : loggedIn ? (
+            <Button asChild size="lg">
+              <Link href="/events">Open events</Link>
+            </Button>
           ) : (
-            <Button type="button" size="lg" onClick={() => void signIn("github", { callbackUrl: "/events" })}>
+            <Button type="button" size="lg" onClick={() => void signIn("github", { callbackUrl: "/" })}>
               Continue with GitHub
             </Button>
           )}
