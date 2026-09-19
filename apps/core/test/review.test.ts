@@ -4,6 +4,7 @@ import {
   parentOfFirstInWindow,
   reviewUrlFromPr,
 } from "../src/review/fork-pr.js";
+import { reviewFromE2e } from "../src/review/sandbox-review-helpers.js";
 import { parseLumaHtml, parseGuestCsv } from "../src/luma/event.js";
 import { isQuotaSignature, retentionCutoff } from "../src/cron-helpers.js";
 
@@ -36,6 +37,33 @@ describe("review helpers", () => {
         notes: "",
       }),
     ).toBe(1);
+  });
+
+  it("scores a sandbox e2e review from clone and screenshots", () => {
+    const review = reviewFromE2e({
+      teamName: "Team Danube",
+      repoUrl: "https://github.com/Gyurmatag/budapest-voice-desk",
+      target: "https://hackathon-team-danube.cfi-ops.workers.dev",
+      fileCount: 12,
+      pass: 2,
+      fail: 0,
+      screenshots: ["submissions/sub_1/review/evidence/e2e-home.png"],
+      provenance: {
+        repo_created_at: "",
+        is_fork: false,
+        parent_repo: null,
+        commits: [],
+        in_window_ratio: 1,
+        bot_commit_ratio: 0,
+        coauthor_devin_ratio: 0,
+        devin_prs: 0,
+        notes: "",
+      },
+    });
+    expect(review.summary).toContain("Sandbox review of Team Danube");
+    expect(review.screenshots).toHaveLength(1);
+    expect(review.summary_score).toBeGreaterThan(0.9);
+    expect(review.pr_url).toBe("");
   });
 });
 

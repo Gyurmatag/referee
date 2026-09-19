@@ -485,6 +485,14 @@ export async function getSubmission(db: D1Database, id: string): Promise<Submiss
       review_url: review.review_url ?? "",
       summary: review.summary ?? "",
       summary_score: Number(review.summary_score ?? 0),
+      screenshots: (() => {
+        try {
+          const parsed = JSON.parse(String(review.screenshots_json || "[]"));
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      })(),
     });
     if (parsed.success) reviewRow = parsed.data;
   }
@@ -579,16 +587,25 @@ export async function upsertDeployment(db: D1Database, submissionId: string, d: 
 export async function upsertReview(db: D1Database, submissionId: string, r: Review) {
   await db
     .prepare(
-      `INSERT INTO reviews (submission_id, fork_repo, pr_url, review_url, summary, summary_score)
-       VALUES (?, ?, ?, ?, ?, ?)
+      `INSERT INTO reviews (submission_id, fork_repo, pr_url, review_url, summary, summary_score, screenshots_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(submission_id) DO UPDATE SET
          fork_repo = excluded.fork_repo,
          pr_url = excluded.pr_url,
          review_url = excluded.review_url,
          summary = excluded.summary,
-         summary_score = excluded.summary_score`,
+         summary_score = excluded.summary_score,
+         screenshots_json = excluded.screenshots_json`,
     )
-    .bind(submissionId, r.fork_repo, r.pr_url, r.review_url, r.summary, r.summary_score)
+    .bind(
+      submissionId,
+      r.fork_repo,
+      r.pr_url,
+      r.review_url,
+      r.summary,
+      r.summary_score,
+      JSON.stringify(r.screenshots ?? []),
+    )
     .run();
 }
 

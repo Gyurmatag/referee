@@ -38,6 +38,7 @@ export const WallTeamSchema = z.object({
   live_url: z.string().nullable().optional(),
   deploy_url: z.string().nullable().optional(),
   phase: z.string().default(""),
+  screenshots: z.array(z.string()).default([]),
 });
 
 export const WallPayloadSchema = z.object({

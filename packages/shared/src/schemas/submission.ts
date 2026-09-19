@@ -70,6 +70,7 @@ export const ReviewSchema = z.object({
   review_url: z.string().default(""),
   summary: z.string().default(""),
   summary_score: z.number().min(0).max(1).default(0),
+  screenshots: z.array(z.string()).default([]),
 });
 
 /**

@@ -14,7 +14,7 @@ import {
   type CoreEnv,
 } from "../db/queries.js";
 import { fetchProvenance } from "../provenance/github.js";
-import { createReview } from "../review/fork-pr.js";
+import { runSandboxReview } from "../review/sandbox-review.js";
 import {
   createRunner,
   isTerminalPhase,
@@ -83,6 +83,17 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
       await this.start(id, state?.hints ?? "");
       return Response.json({ ok: true, id });
     }
+    if (url.pathname.endsWith("/review-now") && request.method === "POST") {
+      const state = await this.load();
+      const id = state?.submissionId || this.ctx.id.name || "unknown";
+      this.ctx.waitUntil(
+        this.writeReview(id).then(async () => {
+          const latest = await this.load();
+          if (latest?.step === "done") await this.runAggregate(latest);
+        }),
+      );
+      return Response.json({ ok: true, id, started: true });
+    }
     if (url.pathname.endsWith("/appeal") && request.method === "POST") {
       const body = await request.json<{ hints?: string }>().catch(() => ({ hints: "" }));
       const state = await this.load();
@@ -142,7 +153,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
         return;
       }
       if (state.step === "judge2") {
-        await this.pollJudge(state, "tracks", "review");
+        await this.pollJudge(state, "tracks", "aggregate");
         return;
       }
       if (state.step === "review") {
@@ -164,10 +175,10 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
         provenance: "wait_slot",
         wait_slot: "deploy",
         judge1: "deploy",
-        deploy: "wait_slot_j2",
-        wait_slot_j2: "review",
-        judge2: "review",
-        review: "aggregate",
+        deploy: "review",
+        review: "wait_slot_j2",
+        wait_slot_j2: "aggregate",
+        judge2: "aggregate",
         aggregate: "done",
         done: "done",
         failed: "failed",
@@ -256,7 +267,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
       const message = error instanceof Error ? error.message : "judge start failed";
       await this.emit(state.submissionId, judge, message);
       await this.releaseSlot(state.submissionId, judge);
-      state.step = judge === "build_e2e" ? "deploy" : "review";
+      state.step = judge === "build_e2e" ? "deploy" : "aggregate";
       state.runId = null;
       state.judgeRunId = null;
       await this.save(state);
@@ -438,28 +449,18 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
     });
     await upsertDeployment(this.env.DB, sub.id, deployment);
     await this.emit(sub.id, "deploy", deployNotes(deployment));
-    state.step = "wait_slot_j2";
-    state.currentJudge = "tracks";
+    state.step = "review";
     await this.save(state);
-    await this.trySlot(state, "tracks");
+    await this.runReview(state);
   }
 
-  private async runReview(state: DoState): Promise<void> {
-    const sub = await getSubmission(this.env.DB, state.submissionId);
-    if (!sub) {
-      await this.fail(state, "submission missing");
-      return;
-    }
+  private async writeReview(submissionId: string): Promise<void> {
+    const sub = await getSubmission(this.env.DB, submissionId);
+    if (!sub) return;
     try {
-      const review = await createReview({
-        repoUrl: sub.repo_url,
-        teamName: sub.team_name,
-        provenance: sub.provenance,
-        token: this.env.GITHUB_TOKEN,
-        org: this.env.REFEREE_GITHUB_ORG,
-      });
+      const review = await runSandboxReview(this.env, sub);
       await upsertReview(this.env.DB, sub.id, review);
-      await this.emit(sub.id, "review", review.review_url || review.summary);
+      await this.emit(sub.id, "review", review.summary);
     } catch (error) {
       const message = error instanceof Error ? error.message : "review failed";
       await upsertReview(this.env.DB, sub.id, {
@@ -468,12 +469,18 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
         review_url: "",
         summary: message,
         summary_score: 0.4,
+        screenshots: [],
       });
       await this.emit(sub.id, "review", message);
     }
-    state.step = "aggregate";
+  }
+
+  private async runReview(state: DoState): Promise<void> {
+    await this.writeReview(state.submissionId);
+    state.step = "wait_slot_j2";
+    state.currentJudge = "tracks";
     await this.save(state);
-    await this.runAggregate(state);
+    await this.trySlot(state, "tracks");
   }
 
   private async runAggregate(state: DoState): Promise<void> {

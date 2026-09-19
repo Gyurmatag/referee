@@ -8,6 +8,7 @@ export function EvidenceDialog({ path }: { path: string }) {
     ? path
     : `/api/evidence?key=${encodeURIComponent(path)}`;
   const isVideo = path.endsWith(".webm") || path.endsWith(".mp4");
+  const isImage = /\.(png|jpg|jpeg|webp)$/i.test(path);
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -18,7 +19,9 @@ export function EvidenceDialog({ path }: { path: string }) {
       <DialogContent>
         <DialogTitle>{path}</DialogTitle>
         {isVideo ? (
-          <video controls className="mt-3 w-full rounded-lg bg-black" src={src} />
+          <video controls className="mt-3 w-full rounded-[2px] bg-black" src={src} />
+        ) : isImage ? (
+          <img src={src} alt="" className="mt-3 w-full rounded-[2px] border border-black/10" />
         ) : (
           <p className="mt-3 font-mono text-sm">{path}</p>
         )}

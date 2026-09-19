@@ -98,7 +98,8 @@ CREATE TABLE IF NOT EXISTS reviews (
   pr_url TEXT,
   review_url TEXT,
   summary TEXT,
-  summary_score REAL DEFAULT 0
+  summary_score REAL DEFAULT 0,
+  screenshots_json TEXT DEFAULT '[]'
 );
 
 CREATE TABLE IF NOT EXISTS ingest_tokens (

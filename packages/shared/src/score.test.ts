@@ -90,6 +90,7 @@ describe("aggregate", () => {
         review_url: "",
         summary: "",
         summary_score: 1,
+        screenshots: [],
       },
       rubric: DEFAULT_RUBRIC,
     });

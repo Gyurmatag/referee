@@ -111,8 +111,8 @@ export default function RegisterPage() {
             <h3 className="text-xl font-medium">Judge in parallel</h3>
             <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
               <li>Build, tracks, and review on each repo</li>
-              <li>Cloudflare sandbox - up to six at once</li>
-              <li>Every step is posted to the wall</li>
+              <li>Sandbox clones the repo and runs Playwright e2e</li>
+              <li>Screenshots show on this page after the run</li>
             </ul>
           </article>
           <article className="tile p-8">

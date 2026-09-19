@@ -48,6 +48,7 @@ export async function createReview(input: {
     review_url: "",
     summary: "Review skipped",
     summary_score: heuristicReviewScore(input.provenance),
+    screenshots: [],
   };
   if (!input.token) {
     return { ...fallback, summary: "Review skipped - missing GITHUB_TOKEN" };
@@ -139,6 +140,7 @@ export async function createReview(input: {
       review_url: "",
       summary: `Fork created; PR failed (${pr.status})`,
       summary_score: heuristicReviewScore(input.provenance),
+      screenshots: [],
     };
   }
   return {
@@ -147,5 +149,6 @@ export async function createReview(input: {
     review_url: reviewUrlFromPr(prUrl),
     summary: title,
     summary_score: heuristicReviewScore(input.provenance),
+    screenshots: [],
   };
 }

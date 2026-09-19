@@ -47,11 +47,19 @@ describe("wall payload", () => {
         provenance: null,
         judge_runs: [],
         deployment: null,
-        review: null,
+        review: {
+          fork_repo: "https://github.com/Gyurmatag/budapest-voice-desk",
+          pr_url: "",
+          review_url: "https://hackathon-team-danube.cfi-ops.workers.dev",
+          summary: "Sandbox review",
+          summary_score: 0.9,
+          screenshots: ["submissions/sub_1/review/evidence/e2e-home.png"],
+        },
         external_verdict: null,
       },
     ]);
     expect(teams[0]?.team_name).toBe("Team Danube");
+    expect(teams[0]?.screenshots).toEqual(["submissions/sub_1/review/evidence/e2e-home.png"]);
     const payload = wallPayloadFrom({
       event: publicEventFrom({
         id: "default",

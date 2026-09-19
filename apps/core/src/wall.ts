@@ -51,6 +51,7 @@ export function wallTeamsFrom(submissions: Submission[]) {
     live_url: s.live_url || null,
     deploy_url: s.deployment?.url || s.live_url || null,
     phase: s.judge_runs[0]?.phase || s.status,
+    screenshots: s.review?.screenshots ?? [],
   }));
 }
 

@@ -13,6 +13,7 @@ import { TrackList } from "@/components/track-list";
 import { VerdictComparison } from "@/components/verdict-comparison";
 import { IntegrityPanel } from "@/components/integrity-panel";
 import { AppealForm } from "@/components/appeal-form";
+import { ShotGallery } from "@/components/shot-gallery";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SWR_REFRESH_MS } from "@/lib/swr";
@@ -113,6 +114,11 @@ export function ScorecardView({
               sub.review?.summary || "None"
             )}
           </p>
+          {sub.review?.screenshots?.length ? (
+            <div className="mt-4">
+              <ShotGallery shots={sub.review.screenshots} label="Sandbox E2E screenshots" />
+            </div>
+          ) : null}
         </CardContent>
       </Card>
       {showScores ? (

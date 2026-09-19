@@ -1,4 +1,32 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { ShotGallery } from "@/components/shot-gallery";
+
+type WallTeam = {
+  team_name?: string;
+  deploy_url?: string | null;
+  screenshots?: string[];
+};
+
+type WallPayload = {
+  teams?: WallTeam[];
+};
+
 export function ProductPreview() {
+  const [teams, setTeams] = useState<WallTeam[]>([]);
+
+  useEffect(() => {
+    void fetch("/api/wall")
+      .then((r) => r.json())
+      .then((json: WallPayload) => setTeams(json.teams ?? []))
+      .catch(() => undefined);
+  }, []);
+
+  const shots = teams.flatMap((team) =>
+    (team.screenshots ?? []).map((key) => ({ team: team.team_name ?? "Team", key })),
+  );
+
   return (
     <div className="hero-frame">
       <div className="flex items-center justify-between px-4 py-2.5 text-[13px]">
@@ -10,40 +38,54 @@ export function ProductPreview() {
           <span className="text-black/20">/</span>
           <span className="truncate text-foreground">Check sponsor claims</span>
         </div>
-        <span className="shrink-0 font-mono text-[11px] text-muted-foreground">#357 +1</span>
+        <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+          {shots.length} e2e shots
+        </span>
       </div>
 
       <div className="grid border-t border-black/10 md:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
         <div className="flex min-h-[520px] flex-col px-4 pb-3 pt-4 md:px-5">
           <div className="flex items-start gap-2">
             <div className="min-w-0 flex-1 rounded-[2px] bg-[#f3f3f3] px-4 py-2 text-[13px] leading-5">
-              Check OpenAI, Groq, and Cloudflare claims on both repos, then test.
+              Clone the repo in the sandbox - review it there - run Playwright against the
+              deployed URL.
             </div>
             <span className="mt-0.5 size-7 shrink-0 rounded-[2px] bg-[#d9d9d9]" />
           </div>
 
-          <p className="mt-4 text-[12px] text-muted-foreground">Used playbook: tracks</p>
+          <p className="mt-4 text-[12px] text-muted-foreground">Used playbook: sandbox review</p>
           <p className="mt-2 max-w-[52ch] text-[13px] leading-5 text-muted-foreground">
-            I will clone both repos, rebuild only if there is no live URL, then write the report.
+            Sandbox clone - Playwright e2e - screenshots on this page after the run.
           </p>
-          <p className="mt-3 text-[12px] text-muted-foreground">Worked for 4m 13s</p>
 
-          <JobCard
-            repo="Gyurmatag/budapest-worker-radar"
-            title="Live URL already deployed - skip rebuild"
-            meta="e38191a · main · 6 files"
-          />
-          <JobCard
-            repo="Gyurmatag/budapest-voice-desk"
-            title="No live URL - cfi-ops.workers.dev"
-            meta="undeployed control · +25 −131"
-          />
+          {teams.length === 0 ? (
+            <>
+              <JobCard repo="waiting" title="No consented teams yet" meta="submit a repo to start" />
+            </>
+          ) : (
+            teams.map((team) => (
+              <JobCard
+                key={team.team_name}
+                repo={team.team_name ?? "Team"}
+                title={
+                  team.screenshots?.length
+                    ? `E2E ran - ${team.screenshots.length} screenshots`
+                    : "Waiting for sandbox review"
+                }
+                meta={team.deploy_url ?? "no deploy url"}
+              />
+            ))
+          )}
 
-          <p className="mt-4 text-[13px] leading-5">
-            Done. Chain Bridge is on workers.dev. Danube is the undeployed control. Full report attached.
-          </p>
-          <p className="mt-3 text-[12px] text-muted-foreground">score_report.md</p>
-          <p className="mt-2 text-[12px] text-muted-foreground">Referee is ready for the next repo</p>
+          <div className="mt-4 md:hidden">
+            {shots.length === 0 ? (
+              <div className="rounded-[10px] bg-[#f3f3f3] px-3 py-8 text-center text-[12px] text-muted-foreground">
+                Screenshots land here after the first sandbox review
+              </div>
+            ) : (
+              <ShotGallery shots={shots.map((s) => s.key)} label="E2E screenshots" />
+            )}
+          </div>
 
           <div className="mt-auto flex items-center gap-2 rounded-[10px] border border-black/10 bg-elevated px-3 py-2.5 text-[13px] text-muted-foreground">
             <span className="text-lg leading-none">+</span>
@@ -53,37 +95,23 @@ export function ProductPreview() {
 
         <aside className="hidden border-l border-black/10 px-5 py-4 md:block">
           <div className="flex items-start justify-between gap-3">
-            <p className="text-[13px] font-medium">test_score_report.md</p>
-            <span className="text-[12px] text-muted-foreground">↓</span>
+            <p className="text-[13px] font-medium">E2E screenshots</p>
+            <span className="text-[12px] text-muted-foreground">live</span>
           </div>
           <p className="mt-3 text-[15px] font-medium tracking-[-0.03em]">
-            Test report: check sponsor claims
+            Playwright shots from the sandbox
           </p>
           <p className="mt-2 text-[12px] leading-5 text-muted-foreground">
-            PRs: worker-radar / voice-desk. Live URL vs sandbox. Compared Cloudflare, OpenAI, and Groq
-            claims.
+            Home and health pages after clone, review, and deploy.
           </p>
-
-          <p className="mt-6 text-[13px] font-medium">worker-radar</p>
-          <p className="mt-1 text-[12px] text-muted-foreground">Homepage</p>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <CompareTile label="Before on GitHub" tone="plain">
-              Undeployed
-            </CompareTile>
-            <CompareTile label="After on workers.dev" tone="brand">
-              Deployed
-            </CompareTile>
-          </div>
-
-          <p className="mt-6 text-[13px] font-medium">voice-desk</p>
-          <p className="mt-1 text-[12px] text-muted-foreground">Homepage</p>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <CompareTile label="Before on GitHub" tone="plain">
-              Undeployed
-            </CompareTile>
-            <CompareTile label="After on localhost" tone="brand">
-              Sandbox
-            </CompareTile>
+          <div className="mt-5">
+            {shots.length === 0 ? (
+              <div className="rounded-[10px] bg-[#f3f3f3] px-3 py-8 text-center text-[12px] text-muted-foreground">
+                Screenshots land here after the first sandbox review
+              </div>
+            ) : (
+              <ShotGallery shots={shots.map((s) => s.key)} />
+            )}
           </div>
         </aside>
       </div>
@@ -103,29 +131,6 @@ function JobCard({ repo, title, meta }: { repo: string; title: string; meta: str
       </div>
       <p className="mt-1 text-[13px] leading-5">{title}</p>
       <p className="mt-1 font-mono text-[11px] text-muted-foreground">{meta}</p>
-    </div>
-  );
-}
-
-function CompareTile({
-  label,
-  tone,
-  children,
-}: {
-  label: string;
-  tone: "plain" | "brand";
-  children: string;
-}) {
-  return (
-    <div className="rounded-[10px] bg-[#f3f3f3] px-3 py-5">
-      <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p
-        className={`mt-3 text-[34px] font-medium leading-[0.95] tracking-[-0.04em] ${
-          tone === "brand" ? "text-brand" : "text-foreground"
-        }`}
-      >
-        {children}
-      </p>
     </div>
   );
 }

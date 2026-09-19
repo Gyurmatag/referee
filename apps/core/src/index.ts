@@ -172,6 +172,17 @@ app.post("/submissions/:id/rejudge", async (c) => {
   return c.json(await getSubmission(c.env.DB, id));
 });
 
+app.post("/submissions/:id/review", async (c) => {
+  if (!requireInternal(c)) return c.json({ error: "unauthorized" }, 401);
+  const id = c.req.param("id");
+  const submission = await getSubmission(c.env.DB, id);
+  if (!submission) return c.json({ error: "not found" }, 404);
+  await submissionStub(c.env, id).fetch(
+    new Request("https://submission/review-now", { method: "POST" }),
+  );
+  return c.json(await getSubmission(c.env.DB, id));
+});
+
 app.post("/submissions/:id/appeal", async (c) => {
   if (!requireInternal(c)) return c.json({ error: "unauthorized" }, 401);
   const id = c.req.param("id");

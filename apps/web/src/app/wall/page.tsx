@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import useSWR from "swr";
 import { SWR_REFRESH_MS } from "@/lib/swr";
 import { coreWsUrl } from "@/lib/wall-url";
@@ -22,6 +22,7 @@ type WallTeam = {
   live_url?: string | null;
   deploy_url?: string | null;
   phase?: string;
+  screenshots?: string[];
 };
 
 type WallPayload = {
@@ -46,11 +47,13 @@ function LogCard({
   title,
   meta,
   tone = "running",
+  extra,
 }: {
   label: string;
   title: string;
   meta?: string;
   tone?: "running" | "pass" | "fail";
+  extra?: ReactNode;
 }) {
   const dot =
     tone === "pass" ? "bg-pass" : tone === "fail" ? "bg-fail" : "bg-running";
@@ -65,6 +68,7 @@ function LogCard({
       </div>
       <p className="mt-1 text-[13px] leading-5">{title}</p>
       {meta ? <p className="mt-1 font-mono text-[11px] text-muted-foreground">{meta}</p> : null}
+      {extra}
     </li>
   );
 }
@@ -187,6 +191,7 @@ export default function WallPage() {
             <ul className="flex flex-col gap-2">
               {shown.map((s) => {
                 const deploy = "deploy_url" in s ? s.deploy_url : null;
+                const shots = "screenshots" in s ? s.screenshots ?? [] : [];
                 return (
                   <LogCard
                     key={s.id}
@@ -198,9 +203,27 @@ export default function WallPage() {
                           ? s.phase
                           : s.status
                     }
-                    meta={deploy || s.repo_url}
+                    meta={
+                      shots.length
+                        ? `${deploy || s.repo_url} - ${shots.length} e2e shots`
+                        : deploy || s.repo_url
+                    }
                     tone={
                       s.status === "done" ? "pass" : s.status === "failed" ? "fail" : "running"
+                    }
+                    extra={
+                      shots.length ? (
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          {shots.map((key) => (
+                            <img
+                              key={key}
+                              src={`/api/evidence?key=${encodeURIComponent(key)}`}
+                              alt=""
+                              className="h-20 w-full rounded-[2px] border border-black/10 object-cover object-top"
+                            />
+                          ))}
+                        </div>
+                      ) : null
                     }
                   />
                 );
