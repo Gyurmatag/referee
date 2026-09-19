@@ -35,4 +35,9 @@ export const DEVIN_SESSIONS = [
     href: "https://app.devin.ai/sessions/3fb1447054a74fe3b4962af173e1d7ec",
     note: "Links the two sessions above and reviews how build_e2e and tracks run together.",
   },
+  {
+    title: "Parallel judges PR",
+    href: "https://app.devin.ai/sessions/356f322d949e4b28a9ce4f90645beb5a",
+    note: "Devin opens the PR that starts build_e2e and tracks together.",
+  },
 ] as const;

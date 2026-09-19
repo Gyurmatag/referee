@@ -6,7 +6,8 @@ import { DEFAULT_RUBRIC, EventPublicSchema, type EventPublic, type Rubric } from
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { DEFAULT_EVENT } from "@/lib/core";
+import { MissingEvent } from "@/components/missing-event";
+import { isPlaceholderEvent } from "@/lib/event-ui";
 
 const LUMA_DEMO_CSV = [
   "email,name",
@@ -41,7 +42,7 @@ function OutpostStatus() {
 
 export default function EventAdminPage() {
   const { id } = useParams<{ id: string }>();
-  const [event, setEvent] = useState<EventPublic>(DEFAULT_EVENT);
+  const [event, setEvent] = useState<EventPublic | null>(null);
   const [title, setTitle] = useState("");
   const [city, setCity] = useState("");
   const [venue, setVenue] = useState("");
@@ -66,7 +67,11 @@ export default function EventAdminPage() {
     ])
       .then(([eventJson, board]) => {
         const parsed = EventPublicSchema.safeParse(eventJson);
-        const next = parsed.success ? parsed.data : DEFAULT_EVENT;
+        if (!parsed.success || isPlaceholderEvent(parsed.data)) {
+          setError("Event not found");
+          return;
+        }
+        const next = parsed.data;
         setEvent(next);
         setTitle(next.title);
         setCity(next.city);
@@ -104,7 +109,7 @@ export default function EventAdminPage() {
       setError("Save failed");
       return;
     }
-    setEvent((current) => ({ ...current, title, city, venue }));
+    setEvent((current) => (current ? { ...current, title, city, venue } : current));
     setSaved("Saved");
   }
 
@@ -134,6 +139,7 @@ export default function EventAdminPage() {
     setLumaStatus(`Imported ${json?.imported ?? 0} guests from the Luma demo list`);
   }
 
+  if (error === "Event not found") return <MissingEvent />;
   if (error) {
     return (
       <main className="shell p-6">
@@ -151,6 +157,7 @@ export default function EventAdminPage() {
       </main>
     );
   }
+  if (!event) return <MissingEvent />;
 
   return (
     <main className="shell flex flex-col gap-6 pb-20 pt-10">

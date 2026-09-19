@@ -10,12 +10,14 @@ import {
 } from "@referee/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { DEFAULT_EVENT } from "@/lib/core";
+import { MissingEvent } from "@/components/missing-event";
+import { isPlaceholderEvent } from "@/lib/event-ui";
 
 export default function SubmitPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [event, setEvent] = useState<EventPublic>(DEFAULT_EVENT);
+  const [event, setEvent] = useState<EventPublic | null>(null);
+  const [missing, setMissing] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [pending, setPending] = useState(false);
@@ -23,15 +25,20 @@ export default function SubmitPage() {
   useEffect(() => {
     if (!id) return;
     void fetch(`/api/event?event=${encodeURIComponent(id)}`)
-      .then((r) => r.json())
-      .then((json) => {
-        const parsed = EventPublicSchema.safeParse(json);
-        if (parsed.success) {
-          setEvent(parsed.data);
-          setSelected(parsed.data.claims.map((c) => c.claim));
+      .then(async (r) => {
+        if (r.status === 404) {
+          setMissing(true);
+          return;
         }
+        const json = await r.json();
+        const parsed = EventPublicSchema.safeParse(json);
+        if (!parsed.success || isPlaceholderEvent(parsed.data)) {
+          setMissing(true);
+          return;
+        }
+        setEvent(parsed.data);
       })
-      .catch(() => undefined);
+      .catch(() => setMissing(true));
   }, [id]);
 
   function toggle(claim: string) {
@@ -86,6 +93,17 @@ export default function SubmitPage() {
     router.push(`/s/${body.id}`);
   }
 
+  if (missing) return <MissingEvent />;
+  if (!event) {
+    return (
+      <main className="shell pb-20 pt-10">
+        <div className="h-10 w-40 animate-pulse rounded-[2px] bg-[#efefef]" />
+        <div className="mt-2 h-4 w-72 animate-pulse rounded-[2px] bg-[#efefef]" />
+        <div className="mt-8 box h-96 animate-pulse bg-[#f3f3f3]" />
+      </main>
+    );
+  }
+
   return (
     <main className="shell pb-20 pt-10">
       <h1 className="text-4xl font-medium">Submit</h1>
@@ -94,11 +112,21 @@ export default function SubmitPage() {
       </p>
       <Card className="mt-8">
         <CardContent>
-          <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4">
+          <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4" noValidate>
             <label className="text-sm">
               Team name
-              <input name="team_name" required className="field" />
-              {errors.team_name ? <p className="mt-1 text-fail">{errors.team_name}</p> : null}
+              <input
+                name="team_name"
+                required
+                className="field"
+                aria-invalid={errors.team_name ? true : undefined}
+                aria-describedby={errors.team_name ? "team-name-error" : undefined}
+              />
+              {errors.team_name ? (
+                <p id="team-name-error" className="mt-1 text-fail" role="alert">
+                  {errors.team_name}
+                </p>
+              ) : null}
             </label>
             <label className="text-sm">
               Repo URL
@@ -107,26 +135,40 @@ export default function SubmitPage() {
                 required
                 placeholder="https://github.com/org/repo"
                 className="field"
+                autoComplete="off"
+                aria-invalid={errors.repo_url ? true : undefined}
+                aria-describedby={errors.repo_url ? "repo-url-error" : undefined}
               />
-              {errors.repo_url ? <p className="mt-1 text-fail">{errors.repo_url}</p> : null}
+              {errors.repo_url ? (
+                <p id="repo-url-error" className="mt-1 text-fail" role="alert">
+                  {errors.repo_url}
+                </p>
+              ) : null}
             </label>
             <label className="text-sm">
               Live URL - leave empty if Devin should deploy it
-              <input name="live_url" className="field" />
+              <input
+                name="live_url"
+                className="field"
+                aria-invalid={errors.live_url ? true : undefined}
+              />
+              {errors.live_url ? (
+                <p className="mt-1 text-fail" role="alert">
+                  {errors.live_url}
+                </p>
+              ) : null}
             </label>
             <fieldset className="flex flex-col gap-2">
               <legend className="text-sm">Sponsor claims</legend>
               {event.claims.length === 0 ? (
-                <div className="flex flex-col gap-2">
-                  <div className="h-5 w-full animate-pulse rounded-[2px] bg-[#efefef]" />
-                  <div className="h-5 w-11/12 animate-pulse rounded-[2px] bg-[#efefef]" />
-                  <div className="h-5 w-4/5 animate-pulse rounded-[2px] bg-[#efefef]" />
-                </div>
+                <p className="text-sm text-muted-foreground">No claims on this event</p>
               ) : (
                 event.claims.map((claim) => (
                   <label key={claim.id} className="flex items-center gap-2 text-sm">
                     <input
                       type="checkbox"
+                      name="claims"
+                      value={claim.claim}
                       checked={selected.includes(claim.claim)}
                       onChange={() => toggle(claim.claim)}
                     />
@@ -137,7 +179,11 @@ export default function SubmitPage() {
                 ))
               )}
             </fieldset>
-            {errors.claims ? <p className="text-sm text-fail">{errors.claims}</p> : null}
+            {errors.claims ? (
+              <p className="text-sm text-fail" role="alert">
+                {errors.claims}
+              </p>
+            ) : null}
             <label className="text-sm">
               Demo login
               <input name="demo_user" type="email" placeholder="judge@team.dev" className="field" autoComplete="off" />
@@ -168,7 +214,11 @@ export default function SubmitPage() {
               Run hints
               <textarea name="run_hints" className="field-area" />
             </label>
-            {errors.form ? <p className="text-sm text-fail">{errors.form}</p> : null}
+            {errors.form ? (
+              <p className="text-sm text-fail" role="alert">
+                {errors.form}
+              </p>
+            ) : null}
             <Button type="submit" disabled={pending}>
               {pending ? "Submitting" : "Submit"}
             </Button>

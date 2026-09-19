@@ -11,13 +11,13 @@ export default function DevinPage() {
     <main className="shell pb-20 pt-16">
       <h1 className="text-4xl font-medium md:text-6xl">Devin drives Referee</h1>
       <p className="mt-4 max-w-2xl text-muted-foreground">
-        Three playbooks. Three parallel sessions. A review loop that writes report.json after
+        Three playbooks. Parallel sessions. A review loop that writes report.json after
         every phase. CI that starts Devin when a PR check fails.
       </p>
 
       <section className="mt-12">
         <h2 className="text-2xl font-medium">Parallel sessions</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
           {DEVIN_SESSIONS.map((session) => (
             <article key={session.href} className="box p-6">
               <h3 className="text-lg font-medium">{session.title}</h3>

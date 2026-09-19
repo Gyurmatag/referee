@@ -6,25 +6,34 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { EventPublicSchema, type EventPublic } from "@referee/shared";
 import { Button } from "@/components/ui/button";
-import { DEFAULT_EVENT } from "@/lib/core";
-import { eventPlace, eventWhen } from "@/lib/event-ui";
+import { MissingEvent } from "@/components/missing-event";
+import { eventPlace, eventWhen, isPlaceholderEvent } from "@/lib/event-ui";
 
 export default function EventHubPage() {
   const { id } = useParams<{ id: string }>();
   const organizer = (useSession().data?.user?.roles ?? []).includes("organizer");
   const [event, setEvent] = useState<EventPublic | null>(null);
+  const [missing, setMissing] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     void fetch(`/api/event?event=${encodeURIComponent(id)}`)
-      .then((r) => r.json())
-      .then((json) => {
-        const parsed = EventPublicSchema.safeParse(json);
-        setEvent(parsed.success ? parsed.data : DEFAULT_EVENT);
+      .then(async (r) => {
+        if (!r.ok) {
+          setMissing(true);
+          return;
+        }
+        const parsed = EventPublicSchema.safeParse(await r.json());
+        if (!parsed.success || isPlaceholderEvent(parsed.data)) {
+          setMissing(true);
+          return;
+        }
+        setEvent(parsed.data);
       })
-      .catch(() => setEvent(DEFAULT_EVENT));
+      .catch(() => setMissing(true));
   }, [id]);
 
+  if (missing) return <MissingEvent />;
   if (!event) {
     return (
       <main className="shell pb-20 pt-10">

@@ -9,3 +9,9 @@ export function eventWhen(start?: string, end?: string) {
   if (!end) return from;
   return `${from} – ${new Date(end).toLocaleDateString("en-GB", opts)}`;
 }
+
+
+export function isPlaceholderEvent(event: { title?: string; city?: string; venue?: string } | null | undefined) {
+  if (!event) return true;
+  return event.title === "Event" && !event.city && !event.venue;
+}
