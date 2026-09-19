@@ -149,14 +149,52 @@ async function collectReview(env: CoreEnv, sub: Submission): Promise<Review> {
   });
 }
 
+const LOGIN_WALL_RE =
+  /continue with google|sign in with github|sign in with apple|members only/i;
+
+async function pageLooksLikeLoginWall(
+  target: string,
+  sandbox?: ReturnType<typeof openSandbox>,
+): Promise<boolean> {
+  if (!target) return false;
+  try {
+    const res = await fetch(target, { redirect: "follow" });
+    const html = await res.text();
+    if (LOGIN_WALL_RE.test(html)) return true;
+  } catch {
+    // try from the sandbox next
+  }
+  if (!sandbox) return false;
+  try {
+    const probed = await sandbox.exec(`curl -fsSL --max-time 15 ${JSON.stringify(target)}`, {
+      timeout: 20_000,
+    });
+    return LOGIN_WALL_RE.test(probed.stdout || "");
+  } catch {
+    return false;
+  }
+}
+
+async function markWaitingForLogin(sandbox: ReturnType<typeof openSandbox>, target: string, reason: string) {
+  await sandbox.writeFile(
+    "/tmp/takeover/status.json",
+    JSON.stringify({
+      state: "waiting",
+      reason,
+      url: target,
+      signed_in: false,
+      oauth: 1,
+      password: 0,
+      takeover: true,
+    }),
+  );
+}
+
 async function outcomeFromSandbox(
   env: CoreEnv,
   sub: Submission,
   sandbox: ReturnType<typeof openSandbox>,
 ): Promise<ReviewOutcome> {
-  if (await e2eFinished(sandbox)) {
-    return { kind: "done", review: await collectReview(env, sub) };
-  }
   const status = await readTakeoverStatus(sandbox);
   if (status?.state === "waiting") {
     return {
@@ -164,7 +202,13 @@ async function outcomeFromSandbox(
       reason: status.reason || takeoverReason(status.password, status.oauth),
     };
   }
-  if (status?.state === "done" || status?.state === "failed") {
+  const target = (sub.deployment?.url || sub.live_url || "").trim();
+  if (await pageLooksLikeLoginWall(target)) {
+    const reason = status?.reason || takeoverReason(0, 1);
+    await markWaitingForLogin(sandbox, target, reason);
+    return { kind: "takeover", reason };
+  }
+  if (await e2eFinished(sandbox) || status?.state === "done" || status?.state === "failed") {
     return { kind: "done", review: await collectReview(env, sub) };
   }
   return { kind: "running" };
@@ -179,17 +223,42 @@ export async function startSandboxReview(env: CoreEnv, sub: Submission): Promise
   await sandbox.writeFile("/tmp/referee-target.txt", target);
   await sandbox.writeFile("/tmp/referee-demo.json", JSON.stringify(demo ?? { user: "", password: "" }));
   await sandbox.writeFile("/tmp/referee-e2e.mjs", E2E_CAPTURE_JS);
+  if (await pageLooksLikeLoginWall(target, sandbox)) {
+    const reason = takeoverReason(0, 1);
+    try {
+      await startE2eProcess(sandbox, target);
+    } catch {
+      // the isolated browser is best-effort; the wall is enough to pause
+    }
+    await markWaitingForLogin(sandbox, target, reason);
+    return { kind: "takeover", reason };
+  }
   try {
     await startE2eProcess(sandbox, target);
   } catch {
+    if (await pageLooksLikeLoginWall(target)) {
+      const reason = takeoverReason(0, 1);
+      await markWaitingForLogin(sandbox, target, reason);
+      return { kind: "takeover", reason };
+    }
     return {
       kind: "done",
       review: skippedReview(sub, 1),
     };
   }
-  for (let i = 0; i < 16; i += 1) {
+  if (await pageLooksLikeLoginWall(target)) {
+    const reason = takeoverReason(0, 1);
+    await markWaitingForLogin(sandbox, target, reason);
+    return { kind: "takeover", reason };
+  }
+  for (let i = 0; i < 40; i += 1) {
     await sleep(1_200);
     if (await e2eFinished(sandbox)) {
+      if (await pageLooksLikeLoginWall(target)) {
+        const reason = takeoverReason(0, 1);
+        await markWaitingForLogin(sandbox, target, reason);
+        return { kind: "takeover", reason };
+      }
       return { kind: "done", review: await collectReview(env, sub) };
     }
     const status = await readTakeoverStatus(sandbox);

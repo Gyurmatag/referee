@@ -717,6 +717,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
       await this.fail(state, "submission missing");
       return;
     }
+    await this.emit(sub.id, "review", "starting isolated login review");
     try {
       const outcome = await startSandboxReview(this.env, sub);
       if (outcome.kind === "takeover") {

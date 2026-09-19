@@ -59,7 +59,6 @@ export default function LandingPage() {
               <li>Playbooks start build and tracks sessions in parallel</li>
               <li>Sandbox clones the repo and runs Playwright e2e</li>
               <li>Teams can take over the isolated browser to finish login</li>
-              <li>Open /devin for sessions, playbooks, and CI</li>
             </ul>
           </article>
           <article className="tile p-8">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ShotGallery } from "@/components/shot-gallery";
 import { TakeoverBanner } from "@/components/takeover-banner";
+import { TeamLiveLogs } from "@/components/team-live-logs";
 import { useWall } from "@/hooks/use-wall";
 import { eventTone, eventsForTeam, findTeam, prettyKind, prettyTime } from "@/lib/wall-client";
 
@@ -104,7 +105,12 @@ export default function TeamLogPage() {
           </div>
         </div>
 
-        <h2 className="mt-12 text-lg font-medium">Log</h2>
+        <div className="mt-10">
+          <h2 className="mb-3 text-lg font-medium">Live judging logs</h2>
+          <TeamLiveLogs id={id} teamName={team?.team_name} tall hideHeader hideLinks />
+        </div>
+
+        <h2 className="mt-12 text-lg font-medium">Pipeline</h2>
         {logs.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">Waiting for the first step</p>
         ) : (

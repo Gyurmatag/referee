@@ -306,7 +306,7 @@ const slides: Slide[] = [
         </Display>
         <Line>
           Playbooks start build and tracks in parallel. Each session writes report.json after every
-          phase. Failed CI starts Devin again. Open /devin for the sessions.
+          phase. Failed CI starts Devin again.
         </Line>
       </div>
     ),

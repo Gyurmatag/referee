@@ -27,12 +27,24 @@ function writeStatus(status) {
 
 function oauthLocator(page) {
   const name = /sign in with (google|github|apple)|continue with (google|github|apple)|log in with (google|github|apple)/i;
-  return page.getByRole("button", { name }).or(page.getByRole("link", { name }));
+  return page
+    .getByRole("button", { name })
+    .or(page.getByRole("link", { name }))
+    .or(page.getByText(name));
 }
 
 async function wallCounts(page) {
   const password = await page.locator('input[type="password"]').count();
-  const oauth = await oauthLocator(page).count();
+  let oauth = 0;
+  try {
+    oauth = await oauthLocator(page).count();
+  } catch {}
+  if (!oauth) {
+    const html = await page.content().catch(() => "");
+    if (/continue with google|sign in with github|sign in with apple|log in with (google|github|apple)/i.test(html)) {
+      oauth = 1;
+    }
+  }
   return { password, oauth, wall: password > 0 || oauth > 0 };
 }
 
@@ -124,6 +136,21 @@ for (const item of pages) {
     } else if (item.name === "home") {
       fail += 1;
     }
+    if (item.name === "home") {
+      const early = await wallCounts(page).catch(() => ({ password: 0, oauth: 0, wall: false }));
+      if (early.wall) {
+        takeover = true;
+        writeStatus({
+          state: "waiting",
+          reason: reasonFor(early),
+          url: page.url(),
+          signed_in: false,
+          oauth: early.oauth,
+          password: early.password,
+          takeover: true,
+        });
+      }
+    }
   } catch (error) {
     fail += 1;
     writeFileSync("/out/evidence/e2e-" + item.name + ".log", String(error));
@@ -132,6 +159,13 @@ for (const item of pages) {
 
 try {
   await page.goto(target, { waitUntil: "domcontentloaded", timeout: 25000 });
+} catch {}
+
+try {
+  await active
+    .getByText(/continue with google|sign in with github|members only|password/i)
+    .first()
+    .waitFor({ timeout: 8000 });
 } catch {}
 
 if (demo.user && demo.password) {

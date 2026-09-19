@@ -21,7 +21,7 @@ export default async function SubmissionPage({
     // defaults
   }
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-4 px-6 pb-20 pt-10">
+    <main className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-4 overflow-x-hidden px-6 pb-20 pt-10">
       <LiveView id={id} windowStart={windowStart} windowEnd={windowEnd} />
     </main>
   );

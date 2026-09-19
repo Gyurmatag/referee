@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { judgeLabel, visibleLog } from "@/lib/visible-log";
 
 const PHASES = [
   "starting",
@@ -22,16 +23,9 @@ function phaseProgress(phase: string): number {
   return Math.round(((idx + 1) / PHASES.length) * 100);
 }
 
-function labelFor(judge: string): string {
-  if (judge === "build_e2e") return "Build and e2e";
-  if (judge === "tracks") return "Tracks";
-  if (judge === "review") return "Review";
-  return judge;
-}
-
 export function JudgeCard({ run }: { run: JudgeRun }) {
   const running = !["done", "failed"].includes(run.phase);
-  const lines = run.log_tail.split("\n").filter(Boolean).slice(-8);
+  const lines = visibleLog(run.log_tail).split("\n").filter(Boolean).slice(-8);
   const badgeVariant =
     run.phase === "failed"
       ? "fail"
@@ -40,7 +34,7 @@ export function JudgeCard({ run }: { run: JudgeRun }) {
         : "running";
 
   return (
-    <Card>
+    <Card className="min-w-0 overflow-hidden">
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2">
@@ -50,14 +44,14 @@ export function JudgeCard({ run }: { run: JudgeRun }) {
                 running ? "bg-running animate-pulse" : "bg-muted-foreground/40",
               )}
             />
-            {labelFor(run.judge)}
+            {judgeLabel(run.judge)}
           </CardTitle>
           <Badge variant={badgeVariant}>{run.phase}</Badge>
         </div>
         <Progress value={phaseProgress(run.phase)} />
       </CardHeader>
       <CardContent>
-        <pre className="max-h-40 overflow-auto font-mono text-xs leading-5 text-muted-foreground">
+        <pre className="max-h-48 w-full min-w-0 overflow-y-auto whitespace-pre-wrap break-all font-mono text-[12px] leading-5 text-muted-foreground">
           {lines.join("\n") || "No log yet"}
         </pre>
         {run.session_url ? (

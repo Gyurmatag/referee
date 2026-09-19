@@ -3,9 +3,9 @@
 import Link from "next/link";
 import useSWR from "swr";
 import { SubmissionSchema, type Submission } from "@referee/shared";
-import { JudgeCard } from "@/components/judge-card";
 import { RepoStory } from "@/components/repo-story";
 import { TakeoverBanner } from "@/components/takeover-banner";
+import { TeamLiveLogs } from "@/components/team-live-logs";
 import { SWR_REFRESH_MS } from "@/lib/swr";
 
 const fetcher = async (url: string): Promise<Submission> => {
@@ -40,21 +40,6 @@ export function LiveView({
       </>
     );
   }
-
-  const reviewRun = {
-    id: "review",
-    submission_id: sub.id,
-    judge: "review",
-    runner: "github",
-    phase: sub.review?.review_url || sub.review?.summary ? ("done" as const) : ("starting" as const),
-    log_tail: sub.review?.review_url || sub.review?.summary || "Waiting for fork and PR",
-    report: null,
-    transcript_key: null,
-    session_url: "",
-    started_at: sub.updated_at,
-    finished_at: null,
-    error: null,
-  };
 
   return (
     <>
@@ -110,11 +95,9 @@ export function LiveView({
       ) : (
         <p className="text-sm text-muted-foreground">Judge deploy URL not ready</p>
       )}
-      <div className="grid gap-4">
-        {sub.judge_runs.map((run) => (
-          <JudgeCard key={run.id} run={run} />
-        ))}
-        <JudgeCard run={reviewRun} />
+      <div className="min-w-0">
+        <h2 className="mb-3 text-lg font-medium">Live judging logs</h2>
+        <TeamLiveLogs id={sub.id} tall hideHeader hideLinks />
       </div>
       <RepoStory
         provenance={sub.provenance}
