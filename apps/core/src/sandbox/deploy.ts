@@ -1,11 +1,18 @@
 import type { Deployment, Recipe } from "@referee/shared";
 import type { CoreEnv } from "../db/queries.js";
 import { openSandbox } from "./client.js";
-import { deployNotes, inferStaticStart, probeUrl, recipeHasStart, waitForOk } from "./deploy-helpers.js";
+import {
+  deployNotes,
+  inferPackageRecipe,
+  inferStaticStart,
+  probeUrl,
+  recipeNeedsInfer,
+  waitForOk,
+} from "./deploy-helpers.js";
 import { sandboxName } from "./lifecycle.js";
 import { publishToWorkersDev } from "./workers-deploy.js";
 
-export { deployNotes, inferStaticStart, probeUrl, recipeHasStart, waitForOk };
+export { deployNotes, inferStaticStart, probeUrl, recipeHasStart, waitForOk } from "./deploy-helpers.js";
 
 export type DeployInput = {
   submissionId: string;
@@ -64,10 +71,15 @@ export async function deploySubmission(
     }
 
     let recipe = input.recipe;
-    if (!recipeHasStart(recipe)) {
-      const index = await sandbox.exists("/work/repo/index.html").catch(() => ({ exists: false }));
-      const inferred = inferStaticStart(Boolean(index.exists));
-      if (inferred) recipe = inferred;
+    if (recipeNeedsInfer(recipe)) {
+      const pkg = await sandbox.exists("/work/repo/package.json").catch(() => ({ exists: false }));
+      if (pkg.exists) {
+        recipe = inferPackageRecipe();
+      } else {
+        const index = await sandbox.exists("/work/repo/index.html").catch(() => ({ exists: false }));
+        const inferred = inferStaticStart(Boolean(index.exists));
+        if (inferred) recipe = inferred;
+      }
     }
 
     if (recipe.install.trim()) {
@@ -105,11 +117,11 @@ export async function deploySubmission(
       last_seen_at: new Date().toISOString(),
       notes: healthy ? `workers ${published.url}` : `published ${published.url} but health check failed`,
     };
-  } catch {
+  } catch (error) {
     return {
       ...base,
       last_seen_at: new Date().toISOString(),
-      notes: "workers publish threw",
+      notes: error instanceof Error ? error.message.slice(0, 240) : "workers publish threw",
     };
   }
 }

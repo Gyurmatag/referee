@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  inferPackageRecipe,
   inferStaticStart,
   recipeHasStart,
+  recipeNeedsInfer,
   deployNotes,
   waitForOk,
   probeUrl,
@@ -17,6 +19,12 @@ describe("deploy helpers", () => {
   it("infers a static server when index.html exists", () => {
     expect(inferStaticStart(true)?.start).toContain("http.server");
     expect(inferStaticStart(false)).toBeNull();
+  });
+
+  it("infers npm build when Devin leaves an empty recipe", () => {
+    const empty = { install: "", build: "", start: "", port: 3000, env: {}, needs_db: false, notes: "" };
+    expect(recipeNeedsInfer(empty)).toBe(true);
+    expect(inferPackageRecipe().build).toBe("npm run build");
   });
 
   it("probes URLs and waits", async () => {

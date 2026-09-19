@@ -17,6 +17,22 @@ export function inferStaticStart(hasIndexHtml: boolean): Recipe | null {
   };
 }
 
+export function recipeNeedsInfer(recipe: Recipe): boolean {
+  return !recipe.start.trim() && !recipe.build.trim() && !recipe.install.trim();
+}
+
+export function inferPackageRecipe(): Recipe {
+  return {
+    install: "npm install",
+    build: "npm run build",
+    start: "npx --yes serve out -l tcp://0.0.0.0:3000",
+    port: 3000,
+    env: {},
+    needs_db: false,
+    notes: "package.json fallback",
+  };
+}
+
 export async function probeUrl(
   url: string,
   fetchImpl: typeof fetch = fetch,
