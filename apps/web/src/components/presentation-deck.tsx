@@ -220,11 +220,11 @@ const slides: Slide[] = [
     id: "try",
     theme: "wash",
     render: () => (
-      <div className="flex w-full max-w-5xl flex-col items-center gap-8 text-center">
+        <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-8 text-center">
         <Kicker>Try it</Kicker>
         <Display>Open Referee.</Display>
         <div className="rounded-[10px] border border-black/10 bg-white p-5 drop-shadow-[0_0_8px_#ddd]">
-          <img src={QR_SRC} alt="QR code to Referee" width={280} height={280} className="size-[220px] md:size-[280px]" />
+          <img src={QR_SRC} alt="QR code to Referee" width={320} height={320} className="size-[240px] md:size-[320px]" />
         </div>
         <p className="text-[15px] text-[#191919]/50">{APP_URL.replace(/^https:\/\//, "")}</p>
       </div>
