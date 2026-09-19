@@ -103,6 +103,7 @@ describe("review helpers", () => {
     expect(E2E_CAPTURE_JS).toContain("sign in with (google|github|apple)");
     expect(TAKEOVER_SESSION_JS).toContain("/tmp/takeover/frame.png");
     expect(TAKEOVER_SESSION_JS).toContain("--no-sandbox");
+    expect(TAKEOVER_SESSION_JS).toContain("playwright-core");
     expect(TAKEOVER_SESSION_JS).toContain("mouse.click");
     expect(TAKEOVER_SESSION_JS).toContain("mouse.move");
     expect(TAKEOVER_SESSION_JS).toContain("keyboard.type");

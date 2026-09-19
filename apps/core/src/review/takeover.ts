@@ -89,7 +89,11 @@ export async function stopE2eProcess(sandbox: SandboxIO): Promise<void> {
     const processes = (await box.listProcesses()) ?? [];
     for (const proc of processes) {
       const command = String(proc.command || "");
-      if (command.includes("referee-browser") || command.includes("referee-e2e")) {
+      if (
+        command.includes("referee-browser") ||
+        command.includes("takeover-app") ||
+        command.includes("referee-e2e")
+      ) {
         await box.killProcess(proc.id);
       }
     }
@@ -130,8 +134,9 @@ async function browserRunning(sandbox: SandboxIO): Promise<boolean> {
 export async function startE2eProcess(sandbox: SandboxIO, target: string): Promise<void> {
   await sandbox.mkdir("/tmp/takeover/inbox", { recursive: true });
   await sandbox.mkdir("/out/evidence", { recursive: true });
+  await sandbox.mkdir("/tmp/takeover-app", { recursive: true });
   await sandbox.writeFile("/tmp/referee-target.txt", target);
-  await sandbox.writeFile("/tmp/referee-browser.mjs", TAKEOVER_SESSION_JS);
+  await sandbox.writeFile("/tmp/takeover-app/referee-browser.mjs", TAKEOVER_SESSION_JS);
   await sandbox.writeFile(
     TAKEOVER_STATUS_PATH,
     JSON.stringify({
@@ -148,11 +153,19 @@ export async function startE2eProcess(sandbox: SandboxIO, target: string): Promi
     await sandbox.exec("mkdir -p /tmp/takeover/inbox /out/evidence; rm -f /tmp/takeover/done");
     await stopE2eProcess(sandbox);
     const command = `bash -lc ${JSON.stringify(
-      `echo "launch $(date -Iseconds)" > /tmp/e2e.out; npx --yes -p playwright@1.55.0 node /tmp/referee-browser.mjs >> /tmp/e2e.out 2>&1`,
+      [
+        'echo "launch $(date -Iseconds)" > /tmp/e2e.out',
+        "mkdir -p /tmp/takeover-app /tmp/takeover/inbox /out/evidence",
+        "cd /tmp/takeover-app",
+        "if [ -d /opt/referee-pw/node_modules/playwright-core ]; then ln -sfn /opt/referee-pw/node_modules /tmp/takeover-app/node_modules",
+        "elif [ ! -d /tmp/takeover-app/node_modules/playwright-core ]; then PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i --omit=dev --no-audit --no-fund playwright-core@1.55.0 >> /tmp/e2e.out 2>&1",
+        "fi",
+        "node referee-browser.mjs >> /tmp/e2e.out 2>&1",
+      ].join("; "),
     )}`;
     await asProcSandbox(sandbox).startProcess(command);
   }
-  const ready = await waitForFrame(sandbox, 20);
+  const ready = await waitForFrame(sandbox, 45);
   if (ready) return;
   if (await browserRunning(sandbox)) return;
   await captureFallbackFrame(sandbox, target);

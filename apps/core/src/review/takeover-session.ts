@@ -1,5 +1,5 @@
 /** Long-lived isolated Chromium. Applies mouse and keyboard, then rescreenshots. */
-export const TAKEOVER_SESSION_JS = `import { chromium } from "playwright";
+export const TAKEOVER_SESSION_JS = `import { chromium } from "playwright-core";
 import {
   appendFileSync,
   existsSync,
@@ -46,35 +46,51 @@ if (!target) {
   process.exit(1);
 }
 
-const browser = await chromium.launch({
-  headless: true,
-  args: ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
-});
-const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-let active = await context.newPage();
-active.on("popup", (popup) => {
-  active = popup;
-  popup.bringToFront().catch(() => {});
-  popup.once("close", () => {
-    if (active === popup) active = context.pages()[0] || active;
+let browser;
+let context;
+let active;
+try {
+  browser = await chromium.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
   });
-});
-
-await active.goto(target, { waitUntil: "domcontentloaded", timeout: 25000 });
-await active.screenshot({
-  path: "/tmp/takeover/frame.png",
-  clip: { x: 0, y: 0, width: 1280, height: 800 },
-});
-writeStatus({
-  state: "waiting",
-  reason: "Team can take over the isolated browser and finish Google or GitHub login",
-  url: active.url(),
-  signed_in: false,
-  oauth: 1,
-  password: 0,
-  takeover: true,
-});
-log("browser ready " + active.url());
+  context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  active = await context.newPage();
+  active.on("popup", (popup) => {
+    active = popup;
+    popup.bringToFront().catch(() => {});
+    popup.once("close", () => {
+      if (active === popup) active = context.pages()[0] || active;
+    });
+  });
+  await active.goto(target, { waitUntil: "domcontentloaded", timeout: 25000 });
+  await active.screenshot({
+    path: "/tmp/takeover/frame.png",
+    clip: { x: 0, y: 0, width: 1280, height: 800 },
+  });
+  writeStatus({
+    state: "waiting",
+    reason: "Team can take over the isolated browser and finish Google or GitHub login",
+    url: active.url(),
+    signed_in: false,
+    oauth: 1,
+    password: 0,
+    takeover: true,
+  });
+  log("browser ready " + active.url());
+} catch (error) {
+  log("launch failed " + error);
+  writeStatus({
+    state: "failed",
+    reason: String(error),
+    url: target,
+    signed_in: false,
+    oauth: 1,
+    password: 0,
+    takeover: true,
+  });
+  process.exit(1);
+}
 
 async function applyInbox() {
   const inbox = "/tmp/takeover/inbox";

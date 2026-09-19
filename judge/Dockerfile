@@ -7,6 +7,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN npm i -g pnpm \
     && npx --yes playwright@1.55.0 install --with-deps chromium
 
+RUN mkdir -p /opt/referee-pw \
+    && cd /opt/referee-pw \
+    && PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i --omit=dev --no-audit --no-fund playwright-core@1.55.0
+
 RUN curl -fsSL https://cli.devin.ai/install.sh -o /tmp/i.sh \
     && (bash /tmp/i.sh </dev/null || true) \
     && /root/.local/bin/devin --version
