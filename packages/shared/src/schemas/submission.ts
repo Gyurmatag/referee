@@ -28,7 +28,7 @@ export const CreateSubmissionSchema = z.object({
   claims: z.array(ClaimInputSchema).max(8).default([]),
   run_hints: z.string().default(""),
   devin_links: z.array(z.string()).default([]),
-  display_consent: z.boolean(),
+  display_consent: z.boolean().default(true),
 });
 
 export const CommitStorySchema = z.object({

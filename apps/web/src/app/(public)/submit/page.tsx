@@ -43,11 +43,8 @@ export default function SubmitPage() {
       live_url: form.get("live_url") || "",
       claims: selected.map((claim) => ({ claim })),
       run_hints: form.get("run_hints") || "",
-      devin_links: String(form.get("devin_links") || "")
-        .split("\n")
-        .map((s) => s.trim())
-        .filter(Boolean),
-      display_consent: form.get("display_consent") === "on",
+      devin_links: [],
+      display_consent: true,
     });
     if (!parsed.success) {
       for (const issue of parsed.error.issues) {
@@ -56,9 +53,6 @@ export default function SubmitPage() {
       }
     }
     if (selected.length < 3) nextErrors.claims = "Select at least three event claims";
-    if (event.wall_enabled && form.get("display_consent") !== "on") {
-      nextErrors.display_consent = "Display consent is required for the wall";
-    }
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       return;
@@ -131,17 +125,6 @@ export default function SubmitPage() {
               Run hints
               <textarea name="run_hints" className="field-area" />
             </label>
-            <label className="text-sm">
-              Devin session links
-              <textarea name="devin_links" className="field-area" />
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="display_consent" defaultChecked />
-              Show this submission on the wall
-            </label>
-            {errors.display_consent ? (
-              <p className="text-sm text-fail">{errors.display_consent}</p>
-            ) : null}
             {errors.form ? <p className="text-sm text-fail">{errors.form}</p> : null}
             <Button type="submit" disabled={pending}>
               {pending ? "Submitting" : "Submit"}
