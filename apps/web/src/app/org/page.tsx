@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function OrgRedirect() {
-  redirect("/admin");
+  redirect("/events");
 }

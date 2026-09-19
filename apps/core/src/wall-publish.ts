@@ -10,9 +10,10 @@ import { publicEventFrom, wallPayloadFrom } from "./wall.js";
 export async function assembleWall(
   env: CoreEnv,
   slots: { inUse: number; queued: number },
+  eventId = "default",
 ) {
-  const event = await getEvent(env.DB);
-  const consented = (await listSubmissions(env.DB, { consented: true })).map((s) =>
+  const event = await getEvent(env.DB, eventId);
+  const consented = (await listSubmissions(env.DB, { consented: true, eventId })).map((s) =>
     event.reveal_scores
       ? s
       : {
@@ -31,7 +32,7 @@ export async function assembleWall(
     queued: slots.queued,
     quota_alert: event.quota_alert,
     submissions: consented,
-    events: await listRecentEvents(env.DB, 50),
+    events: await listRecentEvents(env.DB, 50, eventId),
   });
 }
 

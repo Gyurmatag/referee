@@ -29,6 +29,7 @@ describe("wall payload", () => {
     const teams = wallTeamsFrom([
       {
         id: "sub_1",
+        event_id: "default",
         user_id: "Gyurmatag",
         team_name: "Team Danube",
         repo_url: "https://github.com/Gyurmatag/budapest-voice-desk",

@@ -203,7 +203,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
       status: "judging",
       updated_at: now(),
     });
-    const event = await getEvent(this.env.DB);
+    const event = await getEvent(this.env.DB, sub.event_id);
     try {
       const { provenance, headSha } = await fetchProvenance({
         repoUrl: sub.repo_url,
@@ -297,7 +297,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
 
   private async startJudge(state: DoState, judge: "build_e2e" | "tracks"): Promise<void> {
     const sub = await getSubmission(this.env.DB, state.submissionId);
-    const event = await getEvent(this.env.DB);
+    const event = await getEvent(this.env.DB, sub?.event_id);
     if (!sub) {
       await this.fail(state, "submission missing");
       return;
@@ -485,7 +485,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
 
   private async runAggregate(state: DoState): Promise<void> {
     const sub = await getSubmission(this.env.DB, state.submissionId);
-    const event = await getEvent(this.env.DB);
+    const event = await getEvent(this.env.DB, sub?.event_id);
     if (!sub) {
       await this.fail(state, "submission missing");
       return;

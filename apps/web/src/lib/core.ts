@@ -2,9 +2,9 @@ import { DEFAULT_TRACKS, EventPublicSchema, claimsFromTracks, type EventPublic }
 
 export const DEFAULT_EVENT: EventPublic = EventPublicSchema.parse({
   id: "default",
-  title: "Budapest Build",
-  city: "Budapest",
-  venue: "Impact Hub Budapest",
+  title: "Event",
+  city: "",
+  venue: "",
   starts_at: "2026-09-19T07:00:00.000Z",
   ends_at: "2026-09-20T16:00:00.000Z",
   window_start: "2026-09-19T07:00:00.000Z",

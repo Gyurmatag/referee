@@ -1,96 +1,50 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
-import { EventPublicSchema, type EventPublic } from "@referee/shared";
-import { HomeEvents } from "@/components/home-events";
-import { ProductPreview } from "@/components/product-preview";
 import { Button } from "@/components/ui/button";
-import { DEFAULT_EVENT } from "@/lib/core";
 
-export default function RegisterPage() {
+export default function LandingPage() {
+  const router = useRouter();
   const { data: session, status } = useSession();
-  const [event, setEvent] = useState<EventPublic>(DEFAULT_EVENT);
+  const loggedIn = Boolean(session?.user?.login);
 
   useEffect(() => {
-    void fetch("/api/event")
-      .then((r) => r.json())
-      .then((json) => {
-        const parsed = EventPublicSchema.safeParse(json);
-        if (parsed.success) setEvent(parsed.data);
-      })
-      .catch(() => undefined);
-  }, []);
+    if (status === "authenticated" && loggedIn) {
+      router.replace("/events");
+    }
+  }, [loggedIn, router, status]);
 
-  const sponsors = [...new Set(event.claims.map((claim) => claim.sponsor))];
-  const featured = sponsors[0] ?? "OpenAI";
+  if (status === "authenticated" && loggedIn) {
+    return (
+      <main className="mx-auto max-w-5xl px-6 pb-20 pt-16">
+        <div className="mx-auto h-16 w-80 animate-pulse rounded-[2px] bg-[#efefef]" />
+        <div className="mx-auto mt-8 h-9 w-40 animate-pulse rounded-[2px] bg-[#191919]" />
+      </main>
+    );
+  }
 
   return (
     <main>
-      <section className="mx-auto flex max-w-5xl flex-col items-center px-6 pb-10 pt-16 text-center md:pt-24">
+      <section className="mx-auto flex max-w-5xl flex-col items-center px-6 pb-16 pt-16 text-center md:pt-24">
         <h1 className="max-w-4xl text-[56px] font-medium leading-none tracking-[-0.04em] text-foreground md:text-[80px]">
           Referee, the
           <br />
           hackathon judge
         </h1>
+        <p className="mt-6 max-w-xl text-muted-foreground">
+          Sign in, pick an event, then submit a team or run the room.
+        </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           {status === "loading" ? (
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-28 animate-pulse rounded-[2px] bg-[#191919]" />
-              <div className="h-9 w-24 animate-pulse rounded-[2px] bg-[#efefef]" />
-            </div>
-          ) : session?.user?.login ? (
-            <>
-              <Button asChild size="lg">
-                <Link href="/submit">Submit</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg">
-                <Link href="/wall">Open wall</Link>
-              </Button>
-            </>
+            <div className="h-9 w-44 animate-pulse rounded-[2px] bg-[#191919]" />
           ) : (
-            <>
-              <Button type="button" size="lg" onClick={() => void signIn("github", { callbackUrl: "/submit" })}>
-                Continue with GitHub
-              </Button>
-              <Button asChild variant="outline" size="lg">
-                <Link href="/wall">Open wall</Link>
-              </Button>
-            </>
+            <Button type="button" size="lg" onClick={() => void signIn("github", { callbackUrl: "/events" })}>
+              Continue with GitHub
+            </Button>
           )}
         </div>
-      </section>
-
-      <section className="mx-auto max-w-[1120px] px-4 pb-20 md:px-6">
-        <ProductPreview />
-      </section>
-
-      <HomeEvents />
-
-      <section className="mx-auto max-w-5xl px-6 pb-24 text-center">
-        <p className="text-sm text-muted-foreground">Sponsors for this event choose to</p>
-        <h2 className="mt-3 text-[48px] font-medium leading-none tracking-[-0.04em] md:text-[64px]">
-          Build with <span className="text-brand">{featured}</span>
-        </h2>
-        <div className="mt-8">
-          <Button asChild>
-            <Link href="/wall">Hear from the wall</Link>
-          </Button>
-        </div>
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-          {sponsors.map((sponsor) => (
-            <div
-              key={sponsor}
-              className="tile flex min-h-24 items-center justify-center px-3 text-center text-sm font-medium text-muted-foreground"
-            >
-              {sponsor}
-            </div>
-          ))}
-        </div>
-        <p className="mt-4 text-sm tabular-nums text-muted-foreground">
-          {event.submissions} submissions, {event.judges_running} judges running
-        </p>
       </section>
 
       <section className="mx-auto max-w-5xl px-6 pb-28">
@@ -106,7 +60,7 @@ export default function RegisterPage() {
             <h3 className="text-xl font-medium">Submit and claim</h3>
             <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
               <li>GitHub repo and optional live URL</li>
-              <li>Sponsor claims prefilled from the event</li>
+              <li>Sponsor claims come from the event</li>
               <li>Empty live URL means Devin deploys it</li>
             </ul>
           </article>
@@ -115,13 +69,13 @@ export default function RegisterPage() {
             <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
               <li>Build, tracks, and review on each repo</li>
               <li>Sandbox clones the repo and runs Playwright e2e</li>
-              <li>Screenshots show on this page after the run</li>
+              <li>Screenshots land on the event wall</li>
             </ul>
           </article>
           <article className="tile p-8">
             <h3 className="text-xl font-medium">Score and reveal</h3>
             <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-              <li>Organizer rubric and overrides</li>
+              <li>Admins set the rubric per event</li>
               <li>Reveal scores when the room is ready</li>
               <li>Same GitHub login can also submit</li>
             </ul>

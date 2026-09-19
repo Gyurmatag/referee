@@ -12,9 +12,10 @@ const fetcher = async (url: string): Promise<WallPayload> => {
   return (await res.json()) as WallPayload;
 };
 
-export function useWall(options?: { live?: boolean }) {
+export function useWall(options?: { live?: boolean; eventId?: string }) {
   const enableLive = options?.live ?? true;
-  const { data: polled, error, mutate } = useSWR("/api/wall", fetcher, {
+  const eventId = options?.eventId ?? "default";
+  const { data: polled, error, mutate } = useSWR(`/api/wall?event=${encodeURIComponent(eventId)}`, fetcher, {
     refreshInterval: SWR_REFRESH_MS,
   });
   const [live, setLive] = useState<WallPayload | null>(null);

@@ -13,8 +13,11 @@ import { z } from "zod";
 import {
   countRunningJudges,
   countSubmissions,
+  countSubmissionsByEvent,
   findJudgeRun,
   getEvent,
+  listEvents,
+  normalizeEventId,
   getIngestToken,
   getSubmission,
   importGuests,
@@ -69,6 +72,10 @@ function submissionStub(env: CoreEnv, id: string) {
   return env.SUBMISSION.get(env.SUBMISSION.idFromName(id));
 }
 
+function eventIdOf(c: { req: { query: (n: string) => string | undefined } }) {
+  return normalizeEventId(c.req.query("event") || c.req.query("id"));
+}
+
 app.get("/health", (c) => c.json({ ok: true, service: "referee-core" }));
 
 app.get("/outpost", async (c) => {
@@ -76,9 +83,10 @@ app.get("/outpost", async (c) => {
 });
 
 app.get("/event", async (c) => {
-  const event = await getEvent(c.env.DB);
+  const eventId = normalizeEventId(c.req.query("event") || c.req.query("id"));
+  const event = await getEvent(c.env.DB, eventId);
   const [submissions, judges_running] = await Promise.all([
-    countSubmissions(c.env.DB),
+    countSubmissions(c.env.DB, eventId),
     countRunningJudges(c.env.DB),
   ]);
   return c.json(
@@ -87,6 +95,24 @@ app.get("/event", async (c) => {
       submissions,
       judges_running,
     }),
+  );
+});
+
+app.get("/events", async (c) => {
+  if (!requireInternal(c)) return c.json({ error: "unauthorized" }, 401);
+  const [events, counts, judges_running] = await Promise.all([
+    listEvents(c.env.DB),
+    countSubmissionsByEvent(c.env.DB),
+    countRunningJudges(c.env.DB),
+  ]);
+  return c.json(
+    events.map((event) =>
+      publicEventFrom({
+        ...event,
+        submissions: counts[event.id] ?? 0,
+        judges_running,
+      }),
+    ),
   );
 });
 
@@ -137,7 +163,8 @@ app.post("/submissions", async (c) => {
   }
   const id = `sub_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
   const created_at = new Date().toISOString();
-  const event = await getEvent(c.env.DB);
+  const eventId = normalizeEventId(parsed.data.event_id);
+  const event = await getEvent(c.env.DB, eventId);
   const claims =
     parsed.data.claims.length > 0
       ? parsed.data.claims
@@ -147,6 +174,7 @@ app.post("/submissions", async (c) => {
   }
   await insertSubmission(c.env.DB, {
     id,
+    event_id: eventId,
     user_id: c.req.header("x-user-id") ?? "",
     team_name: parsed.data.team_name,
     repo_url: parsed.data.repo_url.replace(/\.git$/, "").replace(/\/$/, ""),
@@ -227,7 +255,7 @@ app.post("/submissions/:id/appeal", async (c) => {
 });
 
 app.get("/wall", async (c) => {
-  return c.json(await assembleWall(c.env, await schedulerStatus(c.env)));
+  return c.json(await assembleWall(c.env, await schedulerStatus(c.env), eventIdOf(c)));
 });
 
 app.get("/wall/ws", (c) => {
@@ -303,8 +331,9 @@ app.get("/evidence", async (c) => {
 
 app.get("/org/leaderboard", async (c) => {
   if (!requireInternal(c)) return c.json({ error: "unauthorized" }, 401);
-  const event = await getEvent(c.env.DB);
-  const submissions = await listSubmissions(c.env.DB);
+  const eventId = eventIdOf(c);
+  const event = await getEvent(c.env.DB, eventId);
+  const submissions = await listSubmissions(c.env.DB, { eventId });
   const overrides = await listOverrides(c.env.DB);
   return c.json({
     reveal_scores: event.reveal_scores,
@@ -322,25 +351,27 @@ app.put("/org/rubric", async (c) => {
   if (!requireInternal(c)) return c.json({ error: "unauthorized" }, 401);
   const parsed = RubricSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json({ error: "invalid rubric" }, 400);
-  await updateEventRow(c.env.DB, { rubric_json: JSON.stringify(parsed.data) });
+  const eventId = eventIdOf(c);
+  await updateEventRow(c.env.DB, { rubric_json: JSON.stringify(parsed.data) }, eventId);
   return c.json(parsed.data);
 });
 
 app.put("/org/event", async (c) => {
   if (!requireInternal(c)) return c.json({ error: "unauthorized" }, 401);
+  const eventId = eventIdOf(c);
   const parsed = EventSchema.partial()
     .omit({ id: true })
     .safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json({ error: "invalid event" }, 400);
-  await updateEventRow(c.env.DB, parsed.data);
-  return c.json(await getEvent(c.env.DB));
+  await updateEventRow(c.env.DB, parsed.data, eventId);
+  return c.json(await getEvent(c.env.DB, eventId));
 });
 
 app.put("/org/tracks", async (c) => {
   if (!requireInternal(c)) return c.json({ error: "unauthorized" }, 401);
   const parsed = TracksConfigSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json({ error: "invalid tracks" }, 400);
-  await updateEventRow(c.env.DB, { tracks_json: JSON.stringify(parsed.data) });
+  await updateEventRow(c.env.DB, { tracks_json: JSON.stringify(parsed.data) }, eventIdOf(c));
   return c.json(parsed.data);
 });
 
@@ -381,7 +412,7 @@ app.put("/org/reveal", async (c) => {
     .object({ reveal_scores: z.boolean() })
     .safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json({ error: "invalid reveal" }, 400);
-  await updateEventRow(c.env.DB, { reveal_scores: parsed.data.reveal_scores });
+  await updateEventRow(c.env.DB, { reveal_scores: parsed.data.reveal_scores }, eventIdOf(c));
   return c.json(parsed.data);
 });
 
@@ -404,14 +435,18 @@ app.post("/org/luma/sync", async (c) => {
   const parsed = z.object({ luma_url: z.string().url() }).safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json({ error: "invalid luma url" }, 400);
   const luma = await fetchLumaEvent(parsed.data.luma_url);
-  await updateEventRow(c.env.DB, {
-    luma_url: parsed.data.luma_url,
-    title: luma.title,
-    starts_at: luma.starts_at || undefined,
-    ends_at: luma.ends_at || undefined,
-    window_start: luma.starts_at || undefined,
-    window_end: luma.ends_at || undefined,
-  });
+  await updateEventRow(
+    c.env.DB,
+    {
+      luma_url: parsed.data.luma_url,
+      title: luma.title,
+      starts_at: luma.starts_at || undefined,
+      ends_at: luma.ends_at || undefined,
+      window_start: luma.starts_at || undefined,
+      window_end: luma.ends_at || undefined,
+    },
+    eventIdOf(c),
+  );
   return c.json(luma);
 });
 

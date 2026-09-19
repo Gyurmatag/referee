@@ -29,6 +29,7 @@ export const CreateSubmissionSchema = z.object({
   run_hints: z.string().default(""),
   devin_links: z.array(z.string()).default([]),
   display_consent: z.boolean().default(true),
+  event_id: z.string().min(1).max(64).default("default"),
 });
 
 export const CommitStorySchema = z.object({
@@ -129,6 +130,7 @@ export const OverrideSchema = z.object({
 
 export const SubmissionSchema = z.object({
   id: z.string(),
+  event_id: z.string().default("default"),
   user_id: z.string().default(""),
   team_name: z.string(),
   repo_url: z.string(),

@@ -53,42 +53,28 @@ export type CoreEnv = {
   ORGANIZER_LOGINS?: string;
 };
 
-export async function getEvent(db: D1Database) {
-  const row = await db
-    .prepare("SELECT * FROM event WHERE id = ?")
-    .bind("default")
-    .first<{
-      id: string;
-      luma_url: string;
-      title: string;
-      city?: string | null;
-      venue?: string | null;
-      starts_at: string;
-      ends_at: string;
-      window_start: string;
-      window_end: string;
-      rubric_json: string;
-      tracks_json: string;
-      reveal_scores: number;
-      quota_alert: number;
-    }>();
-  if (!row) {
-    return {
-      id: "default",
-      luma_url: "",
-      title: "Budapest Build",
-      city: "Budapest",
-      venue: "Impact Hub Budapest",
-      starts_at: "2026-09-19T07:00:00.000Z",
-      ends_at: "2026-09-20T16:00:00.000Z",
-      window_start: "2026-09-19T07:00:00.000Z",
-      window_end: "2026-09-20T16:00:00.000Z",
-      reveal_scores: false,
-      quota_alert: false,
-      rubric: DEFAULT_RUBRIC,
-      tracks: DEFAULT_TRACKS,
-    };
-  }
+type EventRow = {
+  id: string;
+  luma_url: string;
+  title: string;
+  city?: string | null;
+  venue?: string | null;
+  starts_at: string;
+  ends_at: string;
+  window_start: string;
+  window_end: string;
+  rubric_json: string;
+  tracks_json: string;
+  reveal_scores: number;
+  quota_alert: number;
+};
+
+export function normalizeEventId(raw: string | undefined | null): string {
+  const id = (raw ?? "default").trim();
+  return /^[a-zA-Z0-9_-]{1,64}$/.test(id) ? id : "default";
+}
+
+function parseEventRow(row: EventRow) {
   let rubric = DEFAULT_RUBRIC;
   let tracks = DEFAULT_TRACKS;
   try {
@@ -108,10 +94,10 @@ export async function getEvent(db: D1Database) {
   }
   return {
     id: row.id,
-    luma_url: row.luma_url,
-    title: row.title,
-    city: row.city || "Budapest",
-    venue: row.venue || "Impact Hub Budapest",
+    luma_url: row.luma_url ?? "",
+    title: row.title || "Event",
+    city: row.city ?? "",
+    venue: row.venue ?? "",
     starts_at: row.starts_at,
     ends_at: row.ends_at,
     window_start: row.window_start,
@@ -121,6 +107,36 @@ export async function getEvent(db: D1Database) {
     rubric,
     tracks,
   };
+}
+
+export async function getEvent(db: D1Database, id = "default") {
+  const eventId = normalizeEventId(id);
+  const row = await db.prepare("SELECT * FROM event WHERE id = ?").bind(eventId).first<EventRow>();
+  if (!row) {
+    return parseEventRow({
+      id: eventId,
+      luma_url: "",
+      title: "Event",
+      city: "",
+      venue: "",
+      starts_at: "2026-09-19T07:00:00.000Z",
+      ends_at: "2026-09-20T16:00:00.000Z",
+      window_start: "2026-09-19T07:00:00.000Z",
+      window_end: "2026-09-20T16:00:00.000Z",
+      rubric_json: "{}",
+      tracks_json: "{}",
+      reveal_scores: 0,
+      quota_alert: 0,
+    });
+  }
+  return parseEventRow(row);
+}
+
+export async function listEvents(db: D1Database) {
+  const rows = await db.prepare("SELECT * FROM event ORDER BY starts_at DESC").all<EventRow>();
+  const events = (rows.results ?? []).map(parseEventRow);
+  if (events.length === 0) return [await getEvent(db)];
+  return events;
 }
 
 export async function upsertUser(
@@ -179,6 +195,7 @@ export async function insertSubmission(
   db: D1Database,
   row: {
     id: string;
+    event_id: string;
     user_id: string;
     team_name: string;
     repo_url: string;
@@ -193,13 +210,14 @@ export async function insertSubmission(
   await db
     .prepare(
       `INSERT INTO submissions (
-        id, user_id, team_name, repo_url, live_url, claims_json, run_hints,
+        id, event_id, user_id, team_name, repo_url, live_url, claims_json, run_hints,
         devin_links_json, display_consent, head_sha, status, confidence, score_json,
         created_at, updated_at, queue_position
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '', 'queued', NULL, NULL, ?, ?, NULL)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', 'queued', NULL, NULL, ?, ?, NULL)`,
     )
     .bind(
       row.id,
+      row.event_id,
       row.user_id,
       row.team_name,
       row.repo_url,
@@ -357,11 +375,23 @@ export async function insertEvent(
     .run();
 }
 
-export async function countSubmissions(db: D1Database): Promise<number> {
-  const row = await db
-    .prepare("SELECT COUNT(*) as n FROM submissions")
-    .first<{ n: number }>();
+export async function countSubmissions(db: D1Database, eventId?: string): Promise<number> {
+  if (eventId) {
+    const row = await db
+      .prepare("SELECT COUNT(*) as n FROM submissions WHERE COALESCE(event_id, 'default') = ?")
+      .bind(eventId)
+      .first<{ n: number }>();
+    return row?.n ?? 0;
+  }
+  const row = await db.prepare("SELECT COUNT(*) as n FROM submissions").first<{ n: number }>();
   return row?.n ?? 0;
+}
+
+export async function countSubmissionsByEvent(db: D1Database): Promise<Record<string, number>> {
+  const rows = await db
+    .prepare("SELECT COALESCE(event_id, 'default') as event_id, COUNT(*) as n FROM submissions GROUP BY event_id")
+    .all<{ event_id: string; n: number }>();
+  return Object.fromEntries((rows.results ?? []).map((row) => [row.event_id, row.n]));
 }
 
 export async function countRunningJudges(db: D1Database): Promise<number> {
@@ -380,6 +410,7 @@ export async function getSubmission(db: D1Database, id: string): Promise<Submiss
     .bind(id)
     .first<{
       id: string;
+      event_id?: string | null;
       user_id: string;
       team_name: string;
       repo_url: string;
@@ -510,6 +541,7 @@ export async function getSubmission(db: D1Database, id: string): Promise<Submiss
 
   return SubmissionSchema.parse({
     id: row.id,
+    event_id: row.event_id || "default",
     user_id: row.user_id,
     team_name: row.team_name,
     repo_url: row.repo_url,
@@ -537,18 +569,26 @@ export async function getSubmission(db: D1Database, id: string): Promise<Submiss
 
 export async function listSubmissionIds(
   db: D1Database,
-  opts?: { consented?: boolean },
+  opts?: { consented?: boolean; eventId?: string },
 ): Promise<string[]> {
-  const sql = opts?.consented
-    ? "SELECT id FROM submissions WHERE display_consent = 1 ORDER BY created_at DESC"
-    : "SELECT id FROM submissions ORDER BY created_at DESC";
-  const rows = await db.prepare(sql).all<{ id: string }>();
+  const clauses: string[] = [];
+  const binds: string[] = [];
+  if (opts?.consented) clauses.push("display_consent = 1");
+  if (opts?.eventId) {
+    clauses.push("COALESCE(event_id, 'default') = ?");
+    binds.push(opts.eventId);
+  }
+  const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+  const rows = await db
+    .prepare(`SELECT id FROM submissions ${where} ORDER BY created_at DESC`)
+    .bind(...binds)
+    .all<{ id: string }>();
   return (rows.results ?? []).map((r) => r.id);
 }
 
 export async function listSubmissions(
   db: D1Database,
-  opts?: { consented?: boolean },
+  opts?: { consented?: boolean; eventId?: string },
 ): Promise<Submission[]> {
   const ids = await listSubmissionIds(db, opts);
   const out: Submission[] = [];
@@ -559,7 +599,21 @@ export async function listSubmissions(
   return out;
 }
 
-export async function listRecentEvents(db: D1Database, limit = 50) {
+export async function listRecentEvents(db: D1Database, limit = 50, eventId?: string) {
+  if (eventId) {
+    const rows = await db
+      .prepare(
+        `SELECT e.id, e.submission_id, e.kind, e.message, e.at
+         FROM events e
+         WHERE e.submission_id IN (
+           SELECT id FROM submissions WHERE COALESCE(event_id, 'default') = ?
+         )
+         ORDER BY e.id DESC LIMIT ?`,
+      )
+      .bind(eventId, limit)
+      .all<{ id: number; submission_id: string; kind: string; message: string; at: string }>();
+    return rows.results ?? [];
+  }
   const rows = await db
     .prepare("SELECT id, submission_id, kind, message, at FROM events ORDER BY id DESC LIMIT ?")
     .bind(limit)
@@ -695,14 +749,16 @@ export async function updateEventRow(
     reveal_scores?: boolean;
     quota_alert?: boolean;
   },
+  eventId = "default",
 ) {
-  const current = await getEvent(db);
+  const id = normalizeEventId(eventId);
+  const current = await getEvent(db, id);
   await db
     .prepare(
       `INSERT INTO event (
         id, luma_url, title, city, venue, starts_at, ends_at, window_start, window_end,
         rubric_json, tracks_json, reveal_scores, quota_alert
-      ) VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         luma_url = excluded.luma_url,
         title = excluded.title,
@@ -718,6 +774,7 @@ export async function updateEventRow(
         quota_alert = excluded.quota_alert`,
     )
     .bind(
+      id,
       patch.luma_url ?? current.luma_url,
       patch.title ?? current.title,
       patch.city ?? current.city,

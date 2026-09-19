@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS guest_list (
 
 CREATE TABLE IF NOT EXISTS submissions (
   id TEXT PRIMARY KEY,
+  event_id TEXT DEFAULT 'default',
   user_id TEXT,
   team_name TEXT,
   repo_url TEXT,

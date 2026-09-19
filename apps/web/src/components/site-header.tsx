@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -18,30 +19,51 @@ function initials(login: string) {
 }
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const { data, status } = useSession();
   const login = data?.user?.login ?? "";
   const roles = data?.user?.roles ?? [];
   const organizer = roles.includes("organizer");
   const image = data?.user?.image ?? "";
+  const eventId = pathname.match(/^\/events\/([^/]+)/)?.[1] ?? null;
+  const homeHref = login ? (eventId ? `/events/${eventId}` : "/events") : "/";
 
   return (
     <header className="flex items-center justify-between px-6 py-5 md:px-10">
       <nav className="flex items-center gap-7 text-sm">
-        <Link href="/" className="flex items-center gap-2 font-medium">
+        <Link href={homeHref} className="flex items-center gap-2 font-medium">
           <span className="grid size-10 place-items-center rounded-[6px] bg-foreground text-[16px] text-background">
             R
           </span>
         </Link>
-        <Link href="/submit" className="hidden text-muted-foreground hover:text-foreground sm:inline">
-          Submit
-        </Link>
-        <Link href="/wall" className="hidden text-muted-foreground hover:text-foreground sm:inline">
-          Wall
-        </Link>
-        {organizer ? (
-          <Link href="/admin" className="hidden text-muted-foreground hover:text-foreground sm:inline">
-            Admin
+        {login ? (
+          <Link href="/events" className="hidden text-muted-foreground hover:text-foreground sm:inline">
+            Events
           </Link>
+        ) : null}
+        {eventId ? (
+          <>
+            <Link
+              href={`/events/${eventId}/submit`}
+              className="hidden text-muted-foreground hover:text-foreground sm:inline"
+            >
+              Submit
+            </Link>
+            <Link
+              href={`/events/${eventId}/wall`}
+              className="hidden text-muted-foreground hover:text-foreground sm:inline"
+            >
+              Wall
+            </Link>
+            {organizer ? (
+              <Link
+                href={`/events/${eventId}/admin`}
+                className="hidden text-muted-foreground hover:text-foreground sm:inline"
+              >
+                Admin
+              </Link>
+            ) : null}
+          </>
         ) : null}
       </nav>
       <div className="flex items-center gap-2">
@@ -74,10 +96,10 @@ export function SiteHeader() {
           </DropdownMenu>
         ) : (
           <>
-            <Button type="button" variant="ghost" onClick={() => void signIn("github", { callbackUrl: "/submit" })}>
+            <Button type="button" variant="ghost" onClick={() => void signIn("github", { callbackUrl: "/events" })}>
               Log in
             </Button>
-            <Button type="button" onClick={() => void signIn("github", { callbackUrl: "/submit" })}>
+            <Button type="button" onClick={() => void signIn("github", { callbackUrl: "/events" })}>
               Get started
             </Button>
           </>

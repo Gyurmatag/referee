@@ -47,8 +47,8 @@ export default function TeamLogPage() {
     return (
       <main className="min-h-[calc(100vh-72px)] bg-background px-6 pb-16 pt-10">
         <div className="mx-auto max-w-3xl">
-          <Link href="/wall" className="text-sm text-muted-foreground hover:text-foreground">
-            Wall
+          <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground">
+            Events
           </Link>
           <h1 className="mt-6 text-4xl font-medium">Team not found</h1>
         </div>
@@ -59,8 +59,8 @@ export default function TeamLogPage() {
   return (
     <main className="min-h-[calc(100vh-72px)] bg-background px-6 pb-20 pt-10 text-foreground">
       <div className="mx-auto max-w-3xl">
-        <Link href="/wall" className="text-sm text-muted-foreground hover:text-foreground">
-          Wall
+        <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground">
+          Events
         </Link>
         <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
           <div>
