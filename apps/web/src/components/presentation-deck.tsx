@@ -46,6 +46,18 @@ function Box({ label, hint }: { label: string; hint?: string }) {
   );
 }
 
+function Shot({ src, alt, tall }: { src: string; alt: string; tall?: boolean }) {
+  return (
+    <div className="overflow-hidden rounded-[10px] border border-black/10 bg-white drop-shadow-[0_0_8px_#ddd]">
+      <img
+        src={src}
+        alt={alt}
+        className={`block w-full object-cover object-top ${tall ? "max-h-[58vh]" : "max-h-[48vh]"}`}
+      />
+    </div>
+  );
+}
+
 const slides: Slide[] = [
   {
     id: "title",
@@ -133,6 +145,17 @@ const slides: Slide[] = [
     ),
   },
   {
+    id: "look",
+    theme: "wash",
+    render: () => (
+      <div className="flex w-full max-w-6xl flex-col items-start gap-8">
+        <Kicker>Product</Kicker>
+        <Display>The event.</Display>
+        <Shot src="/presentation/landing.png" alt="Budapest Build on the Referee landing page" tall />
+      </div>
+    ),
+  },
+  {
     id: "flow",
     theme: "wash",
     render: () => (
@@ -165,6 +188,17 @@ const slides: Slide[] = [
     ),
   },
   {
+    id: "board",
+    theme: "wash",
+    render: () => (
+      <div className="flex w-full max-w-6xl flex-col items-start gap-8">
+        <Kicker>Tonight</Kicker>
+        <Display>The wall.</Display>
+        <Shot src="/presentation/wall.png" alt="Budapest Build wall with three teams" tall />
+      </div>
+    ),
+  },
+  {
     id: "sandbox",
     theme: "wash",
     render: () => (
@@ -186,17 +220,45 @@ const slides: Slide[] = [
     id: "takeover",
     theme: "wash",
     render: () => (
+      <div className="grid w-full max-w-6xl items-center gap-10 md:grid-cols-2">
+        <div className="flex flex-col items-start gap-8">
+          <Kicker>Login</Kicker>
+          <Display>
+            The team
+            <br />
+            takes over.
+          </Display>
+          <Line>
+            Team Margaret only has Google and GitHub. We freeze the isolated browser. Someone in the
+            room signs in. Judging continues in that same session.
+          </Line>
+        </div>
+        <Shot src="/presentation/margaret.png" alt="Margaret Night Pass fake Google account picker" />
+      </div>
+    ),
+  },
+  {
+    id: "claims",
+    theme: "wash",
+    render: () => (
+      <div className="flex w-full max-w-6xl flex-col items-start gap-8">
+        <Kicker>Claims</Kicker>
+        <Display>Four sponsors. Every team.</Display>
+        <Shot src="/presentation/team.png" alt="Team Chain Bridge with all four sponsor claims" tall />
+      </div>
+    ),
+  },
+  {
+    id: "demo",
+    theme: "ink",
+    render: () => (
       <div className="flex w-full max-w-5xl flex-col items-start gap-8">
-        <Kicker>Login</Kicker>
+        <Kicker>Budapest Build</Kicker>
         <Display>
-          The team
-          <br />
-          takes over.
+          Live demo.
         </Display>
-        <Line>
-          Team Margaret only has Google and GitHub. We freeze the isolated browser. Someone in the
-          room signs in. Judging continues in that same session.
-        </Line>
+        <Line>Open the wall. Three teams. Margaret signs in.</Line>
+        <p className="font-mono text-[15px] text-white/40">referee-web.cfi-ops.workers.dev</p>
       </div>
     ),
   },
