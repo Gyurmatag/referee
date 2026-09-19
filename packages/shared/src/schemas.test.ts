@@ -29,8 +29,10 @@ describe("zod fixtures", () => {
 
   it("parses default rubric, tracks, recipe and event", () => {
     expect(RubricSchema.parse(DEFAULT_RUBRIC).dimensions).toHaveLength(5);
-    expect(TracksConfigSchema.parse(DEFAULT_TRACKS).tracks.length).toBeGreaterThanOrEqual(5);
+    expect(TracksConfigSchema.parse(DEFAULT_TRACKS).tracks.length).toBeGreaterThanOrEqual(4);
     expect(claimsFromTracks(DEFAULT_TRACKS).map((c) => c.sponsor)).toContain("OpenAI");
+    expect(claimsFromTracks(DEFAULT_TRACKS).map((c) => c.claim)).toContain("Cognition Devin API used");
+    expect(claimsFromTracks(DEFAULT_TRACKS).map((c) => c.sponsor)).not.toContain("Cloudflare");
     expect(RecipeSchema.parse({ start: "npm start", port: 8080 }).port).toBe(8080);
     expect(
       EventSchema.parse({

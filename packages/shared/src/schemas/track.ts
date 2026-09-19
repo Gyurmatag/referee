@@ -73,25 +73,12 @@ export const DEFAULT_TRACKS: z.infer<typeof TracksConfigSchema> = {
       },
     },
     {
-      id: "cloudflare",
-      sponsor: "Cloudflare",
-      label: "Deployed on Cloudflare",
-      claim: "Deployed on Cloudflare Workers",
-      rubric:
-        "Score 0-5 for real use of Workers, Pages, D1, R2, Durable Objects or Containers.",
-      detectors: {
-        files: ["wrangler.toml", "wrangler.jsonc"],
-        deps: ["@cloudflare/*", "wrangler"],
-        readme_terms: ["cloudflare workers", "workers.dev"],
-      },
-    },
-    {
       id: "devin_role",
       sponsor: "Cognition",
-      label: "Devin played a meaningful role",
-      claim: "Devin played a meaningful role",
+      label: "Cognition Devin API used",
+      claim: "Cognition Devin API used",
       rubric:
-        "Score 0-5. Load-bearing code written by Devin scores high; decorative use scores low. Use commit authorship, Co-Authored-By trailers, Devin PRs, session links, and whether tests or features depend on Devin-written code.",
+        "Score 0-5. Real Devin API or session use in load-bearing work scores high. Decorative mentions score low. Use commit authorship, Co-Authored-By trailers, Devin PRs, session links, and whether tests or features depend on Devin-written code.",
       detectors: {
         commit_authors: ["devin-ai-integration[bot]"],
         trailers: ["Co-Authored-By: Devin"],

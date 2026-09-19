@@ -23,6 +23,9 @@ describe("wall payload", () => {
     expect(event.city).toBe("Budapest");
     expect(event.claims.map((c) => c.id)).toContain("openai");
     expect(event.claims.map((c) => c.id)).toContain("elevenlabs");
+    expect(event.claims.map((c) => c.id)).toContain("devin_role");
+    expect(event.claims.map((c) => c.id)).not.toContain("cloudflare");
+    expect(event.claims.map((c) => c.claim)).toContain("Cognition Devin API used");
   });
 
   it("lists consented teams with deploy urls", () => {

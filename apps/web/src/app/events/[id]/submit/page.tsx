@@ -118,7 +118,9 @@ export default function SubmitPage() {
                       checked={selected.includes(claim.claim)}
                       onChange={() => toggle(claim.claim)}
                     />
-                    {claim.sponsor} - {claim.claim}
+                    {claim.claim.startsWith(claim.sponsor)
+                      ? claim.claim
+                      : `${claim.sponsor} - ${claim.claim}`}
                   </label>
                 ))
               )}
