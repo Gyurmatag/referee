@@ -28,7 +28,7 @@ export function SiteHeader() {
     <header className="flex items-center justify-between px-6 py-5 md:px-10">
       <nav className="flex items-center gap-7 text-sm">
         <Link href="/" className="flex items-center gap-2 font-medium">
-          <span className="grid size-6 place-items-center rounded-[5px] bg-foreground text-[11px] text-background">
+          <span className="grid size-10 place-items-center rounded-[6px] bg-foreground text-[16px] text-background">
             R
           </span>
         </Link>
@@ -39,8 +39,8 @@ export function SiteHeader() {
           Wall
         </Link>
         {organizer ? (
-          <Link href="/org" className="hidden text-muted-foreground hover:text-foreground sm:inline">
-            Organizer
+          <Link href="/admin" className="hidden text-muted-foreground hover:text-foreground sm:inline">
+            Admin
           </Link>
         ) : null}
       </nav>
