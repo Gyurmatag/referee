@@ -11,6 +11,7 @@ export type JudgeInput = {
   window: { start: string; end: string };
   hints: string;
   liveUrl?: string | null;
+  secrets?: Record<string, string>;
 };
 
 export type RunnerMeta = {

@@ -187,6 +187,7 @@ app.post("/submissions", async (c) => {
     live_url: parsed.data.live_url || null,
     claims,
     run_hints: parsed.data.run_hints,
+    secrets_text: parsed.data.secrets,
     devin_links: parsed.data.devin_links,
     display_consent: parsed.data.display_consent,
     created_at,

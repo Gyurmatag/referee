@@ -9,6 +9,7 @@ import {
   ReviewSchema,
   ScorecardSchema,
   SubmissionSchema,
+  parseTeamSecrets,
   type Deployment,
   type JudgeRun,
   type Provenance,
@@ -202,6 +203,7 @@ export async function insertSubmission(
     live_url: string | null;
     claims: { claim: string }[];
     run_hints: string;
+    secrets_text?: string;
     devin_links: string[];
     display_consent: boolean;
     created_at: string;
@@ -211,9 +213,9 @@ export async function insertSubmission(
     .prepare(
       `INSERT INTO submissions (
         id, event_id, user_id, team_name, repo_url, live_url, claims_json, run_hints,
-        devin_links_json, display_consent, head_sha, status, confidence, score_json,
+        secrets_text, devin_links_json, display_consent, head_sha, status, confidence, score_json,
         created_at, updated_at, queue_position
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', 'queued', NULL, NULL, ?, ?, NULL)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', 'queued', NULL, NULL, ?, ?, NULL)`,
     )
     .bind(
       row.id,
@@ -224,12 +226,24 @@ export async function insertSubmission(
       row.live_url,
       JSON.stringify(row.claims),
       row.run_hints,
+      row.secrets_text ?? "",
       JSON.stringify(row.devin_links),
       row.display_consent ? 1 : 0,
       row.created_at,
       row.created_at,
     )
     .run();
+}
+
+export async function getSubmissionSecrets(
+  db: D1Database,
+  id: string,
+): Promise<Record<string, string>> {
+  const row = await db
+    .prepare("SELECT secrets_text FROM submissions WHERE id = ?")
+    .bind(id)
+    .first<{ secrets_text?: string | null }>();
+  return parseTeamSecrets(row?.secrets_text ?? "");
 }
 
 export async function updateSubmission(
@@ -417,6 +431,7 @@ export async function getSubmission(db: D1Database, id: string): Promise<Submiss
       live_url: string | null;
       claims_json: string;
       run_hints: string;
+      secrets_text?: string | null;
       devin_links_json: string;
       display_consent: number;
       head_sha: string;
@@ -548,6 +563,7 @@ export async function getSubmission(db: D1Database, id: string): Promise<Submiss
     live_url: row.live_url,
     claims: JSON.parse(row.claims_json || "[]"),
     run_hints: row.run_hints ?? "",
+    has_secrets: Boolean((row.secrets_text ?? "").trim()),
     devin_links: JSON.parse(row.devin_links_json || "[]"),
     display_consent: row.display_consent === 1,
     head_sha: row.head_sha ?? "",

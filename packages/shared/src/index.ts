@@ -68,6 +68,15 @@ export {
 } from "./schemas/submission";
 export { parseDemoLogin, mergeDemoLogin, redactDemoLogin, type DemoLogin } from "./demo-login";
 export {
+  parseTeamSecrets,
+  formatEnvFile,
+  redactSecretLines,
+  secretKeys,
+  TEAM_SECRET_PATHS,
+  REPO_SECRET_PATHS,
+  JUDGE_SECRET_PATH,
+} from "./team-secrets";
+export {
   TAKEOVER_DONE_PATH,
   TAKEOVER_FRAME_PATH,
   TAKEOVER_INBOX,

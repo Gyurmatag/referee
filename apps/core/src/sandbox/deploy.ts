@@ -1,4 +1,4 @@
-import type { Deployment, Recipe } from "@referee/shared";
+import { formatEnvFile, REPO_SECRET_PATHS, type Deployment, type Recipe } from "@referee/shared";
 import type { CoreEnv } from "../db/queries.js";
 import { openSandbox } from "./client.js";
 import {
@@ -22,6 +22,7 @@ export type DeployInput = {
   liveUrl?: string | null;
   teamName?: string;
   runHints?: string;
+  secrets?: Record<string, string>;
 };
 
 export async function deploySubmission(
@@ -82,6 +83,14 @@ export async function deploySubmission(
       }
     }
 
+    const secrets = input.secrets ?? {};
+    const envFile = formatEnvFile(secrets);
+    if (envFile) {
+      for (const path of REPO_SECRET_PATHS) {
+        await sandbox.writeFile(path, envFile);
+      }
+    }
+
     if (recipe.install.trim()) {
       const nodeModules = await sandbox.exists("/work/repo/node_modules").catch(() => ({ exists: false }));
       if (!nodeModules.exists) {
@@ -97,6 +106,7 @@ export async function deploySubmission(
       token,
       accountId,
       subdomain: env.WORKERS_DEV_SUBDOMAIN?.trim() || "cfi-ops",
+      secrets,
     });
     if (!published.url) {
       return {
@@ -107,6 +117,8 @@ export async function deploySubmission(
     }
 
     const healthy = await waitForOk(() => probeUrl(published.url), 60_000, 3_000);
+    const secretCount = Object.keys(secrets).length;
+    const secretNote = secretCount ? ` · ${secretCount} secrets` : "";
     return {
       method: "workers",
       url: published.url,
@@ -115,7 +127,11 @@ export async function deploySubmission(
       port: recipe.port || null,
       healthy,
       last_seen_at: new Date().toISOString(),
-      notes: healthy ? `workers ${published.url}` : `published ${published.url} but health check failed`,
+      notes: published.error
+        ? published.error
+        : healthy
+          ? `workers ${published.url}${secretNote}`
+          : `published ${published.url} but health check failed`,
     };
   } catch (error) {
     return {

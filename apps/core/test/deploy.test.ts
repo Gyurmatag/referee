@@ -8,6 +8,7 @@ import {
   waitForOk,
   probeUrl,
 } from "../src/sandbox/deploy-helpers.js";
+import { formatEnvFile, REPO_SECRET_PATHS } from "@referee/shared";
 import { refereeWranglerConfig, workerScriptName, workersDevUrl } from "../src/sandbox/workers-deploy.js";
 
 describe("deploy helpers", () => {
@@ -61,5 +62,14 @@ describe("deploy helpers", () => {
     expect(refereeWranglerConfig("hackathon-team-danube", "/tmp/referee-assets")).toContain(
       "workers_dev",
     );
+  });
+
+  it("prepares repo env files for team secrets", () => {
+    expect(REPO_SECRET_PATHS).toEqual([
+      "/work/repo/.env",
+      "/work/repo/.env.local",
+      "/work/repo/.dev.vars",
+    ]);
+    expect(formatEnvFile({ OPENAI_API_KEY: "sk-test" })).toBe("OPENAI_API_KEY=sk-test\n");
   });
 });

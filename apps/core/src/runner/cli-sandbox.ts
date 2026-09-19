@@ -1,5 +1,13 @@
 import { getSandbox, type Sandbox } from "@cloudflare/sandbox";
-import { parseDemoLogin, parseJudgeReport, type JudgeReport, type Phase } from "@referee/shared";
+import {
+  formatEnvFile,
+  parseDemoLogin,
+  parseJudgeReport,
+  secretKeys,
+  TEAM_SECRET_PATHS,
+  type JudgeReport,
+  type Phase,
+} from "@referee/shared";
 import type { CoreEnv } from "../db/queries.js";
 import {
   evidenceKey,
@@ -41,6 +49,8 @@ export class CliSandboxRunner implements JudgeRunner {
     );
     await sandbox.writeFile("/root/.config/devin/config.json", DEVIN_CONFIG);
     await sandbox.writeFile("/judge/prompts/build_e2e.md", BUILD_E2E_PROMPT);
+    const secrets = input.secrets ?? {};
+    const envFile = formatEnvFile(secrets);
     await sandbox.writeFile(
       "/judge/input.json",
       JSON.stringify({
@@ -53,6 +63,7 @@ export class CliSandboxRunner implements JudgeRunner {
         hints: input.hints,
         live_url: input.liveUrl ?? "",
         demo_login: parseDemoLogin(input.runHints),
+        secret_keys: secretKeys(secrets),
       }),
     );
     const repo = await sandbox.exists("/work/repo").catch(() => ({ exists: false }));
@@ -60,6 +71,12 @@ export class CliSandboxRunner implements JudgeRunner {
       await sandbox.gitCheckout(input.repo, { targetDir: "/work/repo" });
       if (input.sha) {
         await sandbox.exec(`git -C /work/repo checkout ${shellSingle(input.sha)}`);
+      }
+    }
+    if (envFile) {
+      await sandbox.mkdir("/judge", { recursive: true });
+      for (const path of TEAM_SECRET_PATHS) {
+        await sandbox.writeFile(path, envFile);
       }
     }
     const process = await sandbox.startProcess(`bash /judge/run.sh ${input.judge}`);

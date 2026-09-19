@@ -163,9 +163,9 @@ const slides: Slide[] = [
         <Kicker>How it works</Kicker>
         <Display>One pipeline.</Display>
         <div className="grid w-full gap-3 sm:grid-cols-5">
-          <Box label="Submit" hint="Repo. Claims. Team." />
+          <Box label="Submit" hint="Repo. Claims. Secrets." />
           <Box label="Sandbox" hint="Clone. Build. Test." />
-          <Box label="Deploy" hint="Devin ships it." />
+          <Box label="Deploy" hint="Devin ships it with env." />
           <Box label="Review" hint="Playwright. Team login." />
           <Box label="Wall" hint="Live to the room." />
         </div>
@@ -180,7 +180,7 @@ const slides: Slide[] = [
         <Kicker>The room tonight</Kicker>
         <Display>Three teams.</Display>
         <div className="grid w-full gap-3 md:grid-cols-3">
-          <Box label="Danube" hint="No live URL. Devin deploys it." />
+          <Box label="Danube" hint="No live URL. Devin deploys with secrets." />
           <Box label="Chain Bridge" hint="Already live on workers.dev." />
           <Box label="Margaret" hint="Live, Google login. The room takes over." />
         </div>

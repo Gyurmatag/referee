@@ -66,6 +66,7 @@ export type WorkersPublishInput = {
   token: string;
   accountId: string;
   subdomain?: string;
+  secrets?: Record<string, string>;
 };
 
 export type WorkersPublishResult = {
@@ -123,6 +124,23 @@ export async function publishToWorkersDev(
   const output = `${deployed.stdout || ""}\n${deployed.stderr || ""}`;
   if (!deployed.success) {
     return { url: "", name, error: output.trim().slice(-400) || "wrangler deploy failed" };
+  }
+
+  const secrets = input.secrets ?? {};
+  if (Object.keys(secrets).length > 0) {
+    await sandbox.writeFile("/tmp/referee-secrets.json", JSON.stringify(secrets));
+    const bulk = await sandbox.exec(
+      `npx --yes wrangler@4.135.0 secret bulk /tmp/referee-secrets.json --name ${name}`,
+      { timeout: 120_000, env, cwd: "/work/repo" },
+    );
+    await sandbox.exec("rm -f /tmp/referee-secrets.json").catch(() => undefined);
+    if (bulk.success === false) {
+      return {
+        url,
+        name,
+        error: "published but team secrets failed to bind",
+      };
+    }
   }
   return { url, name, error: "" };
 }

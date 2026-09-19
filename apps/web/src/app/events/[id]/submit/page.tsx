@@ -54,6 +54,7 @@ export default function SubmitPage() {
         String(form.get("demo_user") || ""),
         String(form.get("demo_password") || ""),
       ),
+      secrets: String(form.get("secrets") || ""),
       devin_links: [],
       display_consent: true,
       event_id: id,
@@ -145,6 +146,20 @@ export default function SubmitPage() {
               <span className="mt-1 block text-xs text-muted-foreground">
                 Optional team email and password. If the app uses Google or GitHub, your team can take
                 over the isolated browser and sign in there.
+              </span>
+            </label>
+            <label className="text-sm">
+              Team secrets
+              <textarea
+                name="secrets"
+                className="field-area"
+                placeholder={"OPENAI_API_KEY=\nELEVENLABS_API_KEY=\nGROQ_API_KEY="}
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <span className="mt-1 block text-xs text-muted-foreground">
+                One KEY=value per line. Devin writes these into .env / .dev.vars and into the
+                Worker as secrets. They are not shown on the wall.
               </span>
             </label>
             <label className="text-sm">

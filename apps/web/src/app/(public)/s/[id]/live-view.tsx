@@ -75,6 +75,9 @@ export function LiveView({
       ) : (
         <p className="text-sm text-muted-foreground">No live URL - Devin will deploy it</p>
       )}
+      {sub.has_secrets ? (
+        <p className="text-sm text-muted-foreground">Team secrets were passed to Devin. Values are hidden.</p>
+      ) : null}
       {sub.claims.length > 0 ? (
         <div className="box p-5">
           <p className="text-sm text-muted-foreground">Sponsor claims</p>

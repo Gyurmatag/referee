@@ -39,6 +39,7 @@ describe("wall payload", () => {
         live_url: "",
         claims: [],
         run_hints: "",
+        has_secrets: false,
         devin_links: [],
         display_consent: true,
         head_sha: "",
@@ -89,5 +90,58 @@ describe("wall payload", () => {
     });
     expect(payload.teams).toEqual([]);
     expect(payload.event.title).toBe("Budapest Build");
+  });
+
+  it("redacts team secrets from wall run hints", () => {
+    const payload = wallPayloadFrom({
+      event: publicEventFrom({
+        id: "default",
+        luma_url: "",
+        title: "Budapest Build",
+        starts_at: "2026-09-19T07:00:00.000Z",
+        ends_at: "2026-09-20T16:00:00.000Z",
+        window_start: "2026-09-19T07:00:00.000Z",
+        window_end: "2026-09-20T16:00:00.000Z",
+        reveal_scores: false,
+        quota_alert: false,
+        tracks: DEFAULT_TRACKS,
+        submissions: 1,
+        judges_running: 0,
+      }),
+      in_use: 0,
+      queued: 0,
+      quota_alert: false,
+      submissions: [
+        {
+          id: "sub_2",
+          event_id: "default",
+          user_id: "Gyurmatag",
+          team_name: "Team Danube",
+          repo_url: "https://github.com/Gyurmatag/budapest-voice-desk",
+          live_url: "",
+          claims: [],
+          run_hints: "OPENAI_API_KEY=sk-live\nDEMO_USER=ada",
+          has_secrets: true,
+          devin_links: [],
+          display_consent: true,
+          head_sha: "",
+          status: "done",
+          confidence: null,
+          score: null,
+          created_at: "2026-09-19T10:00:00.000Z",
+          updated_at: "2026-09-19T10:00:00.000Z",
+          queue_position: null,
+          provenance: null,
+          judge_runs: [],
+          deployment: null,
+          review: null,
+          external_verdict: null,
+        },
+      ],
+      events: [],
+    });
+    expect(payload.submissions[0]?.run_hints).toContain("OPENAI_API_KEY=***");
+    expect(payload.submissions[0]?.run_hints).not.toContain("sk-live");
+    expect(payload.submissions[0]?.run_hints).toContain("DEMO_USER=ada");
   });
 });

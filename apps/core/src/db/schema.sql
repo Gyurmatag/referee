@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS submissions (
   live_url TEXT,
   claims_json TEXT,
   run_hints TEXT,
+  secrets_text TEXT DEFAULT '',
   devin_links_json TEXT,
   display_consent INTEGER,
   head_sha TEXT,

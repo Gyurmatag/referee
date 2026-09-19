@@ -2,6 +2,7 @@ import {
   claimsFromTracks,
   EventPublicSchema,
   redactDemoLogin,
+  redactSecretLines,
   type EventPublic,
   type Submission,
   type TracksConfig,
@@ -74,7 +75,7 @@ export function wallPayloadFrom(input: {
         s.status === "queued" ||
         s.status === "takeover",
     )
-    .map((row) => ({ ...row, run_hints: redactDemoLogin(row.run_hints) }));
+    .map((row) => ({ ...row, run_hints: redactSecretLines(redactDemoLogin(row.run_hints)) }));
   return {
     event: input.event,
     in_use: input.in_use,
@@ -83,7 +84,7 @@ export function wallPayloadFrom(input: {
     judging,
     submissions: input.submissions.map((row) => ({
       ...row,
-      run_hints: redactDemoLogin(row.run_hints),
+      run_hints: redactSecretLines(redactDemoLogin(row.run_hints)),
     })),
     teams: wallTeamsFrom(input.submissions),
     events: input.events,

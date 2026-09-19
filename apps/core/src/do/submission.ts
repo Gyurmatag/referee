@@ -3,6 +3,7 @@ import { TAKEOVER_LIMIT_MS, aggregate, parseJudgeReport, type Phase, type Review
 import {
   getEvent,
   getSubmission,
+  getSubmissionSecrets,
   insertEvent,
   insertJudgeRun,
   listOverrides,
@@ -300,6 +301,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
     event: Awaited<ReturnType<typeof getEvent>>,
     judge: "build_e2e" | "tracks",
     hints: string,
+    secrets: Record<string, string>,
   ): JudgeInput {
     return {
       submissionId: sub.id,
@@ -312,6 +314,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
       window: { start: event.window_start, end: event.window_end },
       hints,
       liveUrl: sub.live_url ?? sub.deployment?.url,
+      secrets,
     };
   }
 
@@ -324,7 +327,10 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
     }
     const runner = this.getRunner(judge);
     const started = now();
-    const { runId, meta } = await runner.start(this.judgeInput(sub, event, judge, state.hints));
+    const secrets = await getSubmissionSecrets(this.env.DB, sub.id);
+    const { runId, meta } = await runner.start(
+      this.judgeInput(sub, event, judge, state.hints, secrets),
+    );
     const judgeRunId = crypto.randomUUID();
     const runnerName =
       judge === "tracks"
@@ -458,6 +464,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
       needs_db: false,
       notes: "",
     };
+    const secrets = await getSubmissionSecrets(this.env.DB, sub.id);
     const deployment = await deploySubmission(this.env, {
       submissionId: sub.id,
       repoUrl: sub.repo_url,
@@ -466,6 +473,7 @@ export class SubmissionDO extends DurableObject<CoreEnv> {
       liveUrl: sub.live_url,
       teamName: sub.team_name,
       runHints: sub.run_hints,
+      secrets,
     });
     await upsertDeployment(this.env.DB, sub.id, deployment);
     await this.emit(sub.id, "deploy", deployNotes(deployment));
